@@ -12,7 +12,7 @@ create table if not exists doc_type (
 ) strict, without rowid;
 
 create table if not exists document (
-  idx integer not null unique primary key on conflict rollback autoincrement,
+  idx integer not null unique primary key on conflict rollback,
   link text not null references doc_link (link)
     on update cascade
     on delete restrict,
@@ -23,7 +23,7 @@ create table if not exists document (
 
 create table if not exists instruction (
   title text not null unique primary key
-    on conflict rollback check (ltrim(title, 'abcdefghijklmnopqrstuvwxyz') = '')
+    on conflict rollback check (ltrim(title, 'abcdefghijklmnopqrstuvwxyz_') = '')
 ) strict, without rowid;
 
 create table if not exists doc_inst (
