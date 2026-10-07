@@ -6,20 +6,32 @@ create table if not exists doc_link (
     on conflict rollback check (like 'https://%/')
 ) strict, without rowid;
 
+create table if not exists doc_type (
+  kind text not null unique primary key
+    on conflict rollback check (ltrim(kind, 'abcdefghijklmnopqrstuvwxyz') = '')
+) strict, without rowid;
+
 create table if not exists document (
   idx integer not null unique primary key on conflict rollback autoincrement,
-  url text not null references doc_link (link)
+  link text not null references doc_link (link)
     on update cascade
     on delete restrict,
-  kind integer not null check (kind between 0 AND 1)
+  kind text not null references doc_type (kind)
+    on update cascade
+    on delete restrict
 ) strict;
+
+create table if not exists instruction (
+  title text not null unique primary key
+    on conflict rollback check (ltrim(title, 'abcdefghijklmnopqrstuvwxyz') = '')
+) strict, without rowid;
 
 create table if not exists doc_inst (
   doc integer not null references document (idx)
     on update cascade
     on delete cascade,
   step integer not null,
-  inst integer not null check (inst between 0 and 5)
+  inst text not null references instruction (title),
   primary key (doc, step) on conflict rollback
 ) strict, without rowid;
 
