@@ -3,7 +3,7 @@ pragma foreign_keys=ON;
 
 create table if not exists doc_link (
   link text not null unique primary key
-    on conflict rollback check (like 'https://%/')
+    on conflict rollback check (link like 'https://%/')
 ) strict, without rowid;
 
 create table if not exists doc_type (
