@@ -4,7 +4,10 @@ import logging
 import os
 import pathlib
 import sqlite3
-from typing import Self
+from typing import Self, TypedDict
+
+class InstrList(TypedDict):
+    pass
 
 logger = logging.getLogger(__name__)
 
@@ -32,14 +35,18 @@ class InstructionDatabase:
         return actual_path
                 
 
-    def __init__(self, db_loc: str | None) -> None:
-        db_path = self._convert_to_path(db_loc)
-        if not db_path.is_file():
+    def __init__(self, db_loc: str | pathlib.Path | None) -> None:
+        if isinstance(db_loc, str | None):
+            db_loc = self._convert_to_path(db_loc)
+            
+        if not db_loc.is_file():
             raise ValueError(
                 'db_loc must be a path to the location'
                 ' of the instructions database.'
             )
+
         self._con = sqlite3.connect(f'{db_loc.as_uri()}?mode=ro')
+        self._cur = self._con.cursor()
 
     def __del__(self) -> None:
         self._con.close()
@@ -50,7 +57,8 @@ class InstructionDatabase:
         directory.'''
         db_path = cls._convert_to_path(db_loc)
         # Should paths to bootstrap files be configurable?
-        with sqlite3.connect(db_path) as con, con.cursor() as cur:
+        with sqlite3.connect(db_path) as con:
+            cur = con.cursor()
             cur.executescript(pathlib.Path(
                 f'{__file__}/../../sql/instr_schema.sql'
             ).resolve(True).read_text())
@@ -58,4 +66,13 @@ class InstructionDatabase:
                 f'{__file__}/../../sql/instr_data.sql'
             ).resolve(True).read_text())
         return cls(db_path)
+
+    def get_page_instrs(self, page_num: int) -> InstrList:
+        self._cur.execute(
+            'select inst_attr.*, doc_inst.inst from doc_inst'
+            ' join inst_attr on doc_inst.doc = inst_attr.doc'
+            ' and doc_inst.step = inst_attr.step'
+            ' where doc_inst.doc = ?',
+            (page_num,)
+        )
         
