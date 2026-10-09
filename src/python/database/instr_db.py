@@ -1,13 +1,34 @@
 '''Functions for interacting with the instructions database.'''
-__all__ = []
+__all__ = ['InstructionDatabase']
 import logging
 import os
 import pathlib
 import sqlite3
-from typing import Self, TypedDict
+from typing import cast, Literal, Self, TypedDict
+
+type DocumentKind = Literal['html'] | Literal['pdf']
+
+type Mnemonic = Literal['click_first']
+ | Literal['extract_subtree']
+ | Literal['download_target']
+ | Literal['if_matches']
+
+class Instruction(TypedDict):
+    '''Represents an individual instruction for the web scraper.'''
+    step: int
+    inst: Mnemonic
+    attrs: dict[str, str]
 
 class InstrList(TypedDict):
-    pass
+    '''Represents a list of instructions for the web scraper.'''
+    doc_number: int
+    instructions: list[Instruction]
+    
+class TargetPage(TypedDict):
+    '''Represents a link to a webpage that needs to be parsed.'''
+    idx: int
+    link: str
+    kind: DocumentKind
 
 logger = logging.getLogger(__name__)
 
@@ -46,6 +67,7 @@ class InstructionDatabase:
             )
 
         self._con = sqlite3.connect(f'{db_loc.as_uri()}?mode=ro')
+        self._con.row_factory = sqlite3.Row
         self._cur = self._con.cursor()
 
     def __del__(self) -> None:
@@ -67,12 +89,18 @@ class InstructionDatabase:
             ).resolve(True).read_text())
         return cls(db_path)
 
-    def get_page_instrs(self, page_num: int) -> InstrList:
+    def get_pages(self) -> list[TargetPage]:
+        # MyPy cannot know what the database looks like,
+        # so there's no way to guarantee type safety here.
+        return cast(list[TargetPage], self._cur.execute('select * from document').fetchall())
+    def get_doc_instrs(self, idx: int) -> InstrList:
+        '''Fetch instructions for a document with this identifier.'''
         self._cur.execute(
             'select inst_attr.*, doc_inst.inst from doc_inst'
             ' join inst_attr on doc_inst.doc = inst_attr.doc'
             ' and doc_inst.step = inst_attr.step'
             ' where doc_inst.doc = ?',
-            (page_num,)
+            (idx,)
         )
+        
         
