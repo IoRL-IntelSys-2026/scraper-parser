@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """Functions for interacting with the instructions database."""
 
 __all__ = ["InstructionDatabase"]
