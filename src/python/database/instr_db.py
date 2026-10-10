@@ -95,6 +95,7 @@ class InstructionDatabase:
         return cls(db_path)
 
     def get_pages(self) -> list[TargetPage]:
+        """Fetch all pages available for scraping."""
         # MyPy cannot know what the database looks like,
         # so there's no way to guarantee type safety here.
         return cast(
