@@ -1,7 +1,7 @@
 pragma journal_mode=WAL;
 pragma foreign_keys=ON;
 
--- Links where the document can be found.
+-- Links to pages where the document can be found.
 create table if not exists doc_link (
   link text not null unique primary key
     on conflict rollback check (link like 'https://%/')
