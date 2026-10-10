@@ -66,7 +66,8 @@ class InstructionDatabase:
                 "db_loc must be a path to the location of the instructions database."
             )
 
-        self._con = sqlite3.connect(f"{db_loc.as_uri()}?mode=ro")
+        db_uri = f"file:{db_loc.absolute()}?mode=ro"
+        self._con = sqlite3.connect(db_uri, uri=True)
         self._con.row_factory = sqlite3.Row
         self._cur = self._con.cursor()
         # This might need to be changed later
@@ -84,14 +85,14 @@ class InstructionDatabase:
         with sqlite3.connect(db_path) as con:
             cur = con.cursor()
             cur.executescript(
-                pathlib.Path(f"{__file__}/../../sql/instr_schema.sql")
+                pathlib.Path(f"{__file__}/../../../sql/instr_schema.sql")
                 .resolve(True)
-                .read_text()
+                .read_text(encoding="utf-8")
             )
             cur.executescript(
-                pathlib.Path(f"{__file__}/../../sql/instr_data.sql")
+                pathlib.Path(f"{__file__}/../../../sql/instr_data.sql")
                 .resolve(True)
-                .read_text()
+                .read_text(encoding="utf-8")
             )
         return cls(db_path)
 
