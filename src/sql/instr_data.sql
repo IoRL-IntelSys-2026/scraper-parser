@@ -1,9 +1,9 @@
--- Какие типы документов в итоге?
+-- Describes the target document's file type.
 insert into doc_type (kind) values
   ('html'),
   ('pdf');
 
--- Ссылки на документы
+-- Links that lead to the required document.
 insert into doc_link (link) values
   ('https://admission.rudn.ru/undergraduate/'),
   ('https://admission.rudn.ru/master/'),
@@ -27,18 +27,19 @@ insert into document (idx, link, kind) values
   (9, 'https://www.rudn.ru/science/dad/doctorantura/', 'html');
 
 /*
- * Описания для инструкций:
- *  - click_first: нажать на первый элемент с указанными
- *   атрибутами. (обычно единственный)
- *  - extract_subtree: Извлечь элемент с этими атрибутами
- *   и все элементы внутри него и сохранить их.
- *  - if_matches: Должно иметь атрибут "branch-tgt". Если
- *   элемент с такими атрибутами есть, то перейти к
- *   следующей инструкции. Иначе перейти к номеру
- *   инструкции "branch-tgt".
- *  - download_target: скачать то, что находится за ссылкой
- *   совпадающего по атрибутам элемента, наподобие "Сохранить
- *   ссылку как..." в браузере.
+ * Instruction descriptions:
+ *  - click_first: Click on the first (or only) HTML element
+ *    with the specified attributes.
+ *  - extract_subtree: Extract the element with the specified
+ *    attributes and all of its children and save them as an
+ *    HTML document.
+ *  - if_matches: If an element with these attributes exists,
+ *    proceed to the next instruction, otherwise jump to
+ *    `branch_tgt`. Requires the `branch_tgt` attribute
+ *    to be set.
+ *  - download_target: Download the document pointed to
+ *    by the element with these attributes, similar to
+ *    the "Save link as..." action in most browsers.
  */
 insert into instruction (title) values
   ('click_first'),
@@ -47,16 +48,14 @@ insert into instruction (title) values
   ('download_target');
 
 /*
- * Описания для тегов:
- *  - branch-tgt: используется разными инструкциями. См. описание
- *   инструкции для определения branch-tgt.
- *  - tag: HTML-тег элемента.
- *  - id: (уникальный) атрибут "id" HTML-элемента.
- *  - class: атрибут "class" (один или несколько через пробел)
- *   HTML-элемента.
- *  - text: Текст внутри HTML-элемента, т.е. "Hi" для <h1>Hi</h1>.
- * Атрибуты, у которых нет описания, используются элементами на
- * странице, и их нужно использовать для поиска нужного элемента.
+ * Attribute descriptions:
+ *  - branch-tgt: used to specify a step for branch instructions.
+ *  - tag: The HTML element's tag.
+ *  - id: the element's (hopefully unique) id.
+ *  - class: one or more element classes separated by spaces.
+ *  - text: The element's text node, e.g. the "Hi" in <h1>Hi</h1>.
+ * Attributes not listed here have no special meaning and are used
+ * to select elements.
  */
 insert into attribute (attr) values
   ('branch-tgt'),
@@ -66,7 +65,6 @@ insert into attribute (attr) values
   ('text'),
   ('data-editor');
 
--- Документы 1-4: так как это кнопка для загрузки
 insert into doc_inst values
   (1, 1, 'download_target'),
   (2, 1, 'download_target'),
