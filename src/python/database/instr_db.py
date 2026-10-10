@@ -108,7 +108,8 @@ class InstructionDatabase:
         res: list[Instruction] = []
         last_step = 0
         self._cur.execute(
-            "select inst_attr.*, doc_inst.inst from doc_inst"
+            "select doc_inst.step, doc_inst.inst, inst_attr.kind,"
+            " inst_attr.val from doc_inst"
             " join inst_attr on doc_inst.doc = inst_attr.doc"
             " and doc_inst.step = inst_attr.step"
             " where doc_inst.doc = ? order by doc_inst.step",
