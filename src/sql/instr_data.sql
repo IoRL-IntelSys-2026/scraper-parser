@@ -1,7 +1,7 @@
 -- Describes the target document's file type.
 insert into doc_type (kind) values
-  ('html'),
-  ('pdf');
+  (1), -- HTML
+  (2); -- PDF
 
 -- Links that lead to the required document.
 insert into doc_link (link) values
@@ -41,11 +41,11 @@ insert into document (idx, link, kind) values
  *    by the element with these attributes, similar to
  *    the "Save link as..." action in most browsers.
  */
-insert into instruction (title) values
-  ('click_first'),
-  ('extract_subtree'),
-  ('if_matches'),
-  ('download_target');
+insert into instruction (inst) values
+  (1), -- click_first
+  (2), -- extract_subtree
+  (3), -- if_matches
+  (4); -- download_target
 
 /*
  * Attribute descriptions:
@@ -65,14 +65,14 @@ insert into attribute (attr) values
   ('text'),
   ('data-editor');
 
-insert into doc_inst values
-  (1, 1, 'download_target'),
-  (2, 1, 'download_target'),
-  (3, 1, 'download_target'),
-  (4, 1, 'download_target'),
-  (9, 1, 'extract_subtree');
+insert into doc_inst (doc, step, inst) values
+  (1, 1, 4),
+  (2, 1, 4),
+  (3, 1, 4),
+  (4, 1, 4),
+  (9, 1, 2);
 
-insert into inst_attr values
+insert into inst_attr (doc, step, kind, val) values
   (1, 1, 'tag', 'a'),
   (1, 1, 'data-editor', 'pdf.link'),
   (2, 1, 'tag', 'a'),
