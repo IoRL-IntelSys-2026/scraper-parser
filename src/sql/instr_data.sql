@@ -16,15 +16,15 @@ insert into doc_link (link) values
   ('https://www.rudn.ru/science/dad/doctorantura/');
 
 insert into document (idx, link, kind) values
-  (1, 'https://admission.rudn.ru/undergraduate/timing/', 'pdf'),
-  (2, 'https://admission.rudn.ru/master/timing/', 'pdf'),
-  (3, 'https://admission.rudn.ru/postgraduate/timing/', 'pdf'),
-  (4, 'https://admission.rudn.ru/internship/timing/', 'pdf'),
-  (5, 'https://admission.rudn.ru/undergraduate/', 'html'),
-  (6, 'https://admission.rudn.ru/master/', 'html'),
-  (7, 'https://admission.rudn.ru/postgraduate/', 'html'),
-  (8, 'https://admission.rudn.ru/internship/', 'html'),
-  (9, 'https://www.rudn.ru/science/dad/doctorantura/', 'html');
+  (1, 'https://admission.rudn.ru/undergraduate/timing/', 2),
+  (2, 'https://admission.rudn.ru/master/timing/', 2),
+  (3, 'https://admission.rudn.ru/postgraduate/timing/', 2),
+  (4, 'https://admission.rudn.ru/internship/timing/', 2),
+  (5, 'https://admission.rudn.ru/undergraduate/', 1),
+  (6, 'https://admission.rudn.ru/master/', 1),
+  (7, 'https://admission.rudn.ru/postgraduate/', 1),
+  (8, 'https://admission.rudn.ru/internship/', 1),
+  (9, 'https://www.rudn.ru/science/dad/doctorantura/', 1);
 
 /*
  * Instruction descriptions:
