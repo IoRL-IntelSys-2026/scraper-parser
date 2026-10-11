@@ -72,8 +72,7 @@ class InstructionDatabase:
                 "db_loc must be a path to the location of the instructions database."
             )
 
-        db_uri = f"{db_loc.as_uri()}?mode=ro"
-        self._con = sqlite3.connect(db_uri, uri=True)
+        self._con = sqlite3.connect(f"{db_loc.as_uri()}?mode=ro", uri=True)
         self._con.row_factory = sqlite3.Row
         self._cur = self._con.cursor()
         # This might need to be changed later
