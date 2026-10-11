@@ -12,7 +12,7 @@ create table if not exists doc_link (
  * the comments in the data file for the meaning of each value.
  */
 create table if not exists doc_type (
-  kind integer not null unique primary key on conflict rollback
+  kind integer not null unique primary key on conflict rollback check (kind > 0)
 ) strict;
 
 /*
@@ -36,7 +36,7 @@ create table if not exists document (
  * the comments in the data file for the meaning of each value.
  */
 create table if not exists instruction (
-  num integer not null unique primary key on conflict rollback
+  inst integer not null unique primary key on conflict rollback check (inst > 0)
 ) strict;
 
 -- Describes which actions need to be performed and their order.
@@ -45,7 +45,7 @@ create table if not exists doc_inst (
     on update cascade
     on delete cascade,
   step integer not null,
-  inst integer not null references instruction (title),
+  inst integer not null references instruction (inst),
   primary key (doc, step) on conflict rollback
 ) strict, without rowid;
 
