@@ -8,15 +8,12 @@ create table if not exists doc_link (
 ) strict, without rowid;
 
 /*
- * Describes the document's file type. Consists only of
- * the file extension, since the level of detail provided
- * by a full MIME type is unlikely to be necessary for
- * fetching documents.
+ * Describes the document's file type. This is an enum, check
+ * the comments in the data file for the meaning of each value.
  */
 create table if not exists doc_type (
-  kind text not null unique primary key
-    on conflict rollback check (ltrim(kind, 'abcdefghijklmnopqrstuvwxyz') = '')
-) strict, without rowid;
+  kind integer not null unique primary key on conflict rollback
+) strict;
 
 /*
  * Combines links with document types. Intentionally allows duplicates
@@ -28,19 +25,19 @@ create table if not exists document (
   link text not null references doc_link (link)
     on update cascade
     on delete restrict,
-  kind text not null references doc_type (kind)
+  kind integer not null references doc_type (kind)
     on update cascade
     on delete restrict
 ) strict;
 
 /*
  * Describes actions that can be performed by the web scraper,
- * such as clicking on links or buttons.
+ * such as clicking on links or buttons. This is an enum, check
+ * the comments in the data file for the meaning of each value.
  */
 create table if not exists instruction (
-  title text not null unique primary key
-    on conflict rollback check (ltrim(title, 'abcdefghijklmnopqrstuvwxyz_') = '')
-) strict, without rowid;
+  num integer not null unique primary key on conflict rollback
+) strict;
 
 -- Describes which actions need to be performed and their order.
 create table if not exists doc_inst (
@@ -48,7 +45,7 @@ create table if not exists doc_inst (
     on update cascade
     on delete cascade,
   step integer not null,
-  inst text not null references instruction (title),
+  inst integer not null references instruction (title),
   primary key (doc, step) on conflict rollback
 ) strict, without rowid;
 
