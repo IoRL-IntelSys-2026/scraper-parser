@@ -105,7 +105,7 @@ class InstructionDatabase:
         """Fetch all pages available for scraping."""
         # MyPy cannot know what the database looks like,
         # so there's no way to guarantee type safety here.
-        self._cur.execute("select * from document")
+        self._cur.execute("select * from document order by idx")
         return [
             {"idx": row["idx"], "link": row["link"], "kind": DocumentKind(row["kind"])}
             for row in self._cur
