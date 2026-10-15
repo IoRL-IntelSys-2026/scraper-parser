@@ -1,18 +1,24 @@
-# -*- coding: utf-8 -*-
 """Functions for interacting with the instructions database."""
 
-__all__ = ["InstructionDatabase"]
+__all__ = ["DocumentKind", "InstructionDatabase", "Mnemonic"]
+import enum
 import logging
 import os
 import pathlib
 import sqlite3
-from typing import Literal, Self, TypedDict, cast
+from typing import Self, TypedDict
 
-type DocumentKind = Literal["html", "pdf"]
 
-type Mnemonic = Literal[
-    "click_first", "extract_subtree", "download_target", "if_matches"
-]
+class DocumentKind(enum.Enum):
+    HTML = 1
+    PDF = 2
+
+
+class Mnemonic(enum.Enum):
+    CLICK_FIRST = 1
+    EXTRACT_SUBTREE = 2
+    IF_MATCHES = 3
+    DOWNLOAD_TARGET = 4
 
 
 class Instruction(TypedDict):
@@ -66,8 +72,7 @@ class InstructionDatabase:
                 "db_loc must be a path to the location of the instructions database."
             )
 
-        db_uri = f"file:{db_loc.absolute()}?mode=ro"
-        self._con = sqlite3.connect(db_uri, uri=True)
+        self._con = sqlite3.connect(f"{db_loc.as_uri()}?mode=ro", uri=True)
         self._con.row_factory = sqlite3.Row
         self._cur = self._con.cursor()
         # This might need to be changed later
@@ -85,12 +90,12 @@ class InstructionDatabase:
         with sqlite3.connect(db_path) as con:
             cur = con.cursor()
             cur.executescript(
-                pathlib.Path(f"{__file__}/../../../sql/instr_schema.sql")
+                (pathlib.Path(__file__).parent / "../../sql/instr_schema.sql")
                 .resolve(True)
                 .read_text(encoding="utf-8")
             )
             cur.executescript(
-                pathlib.Path(f"{__file__}/../../../sql/instr_data.sql")
+                (pathlib.Path(__file__).parent / "../../sql/instr_data.sql")
                 .resolve(True)
                 .read_text(encoding="utf-8")
             )
@@ -100,9 +105,11 @@ class InstructionDatabase:
         """Fetch all pages available for scraping."""
         # MyPy cannot know what the database looks like,
         # so there's no way to guarantee type safety here.
-        return cast(
-            list[TargetPage], self._cur.execute("select * from document").fetchall()
-        )
+        self._cur.execute("select * from document order by idx")
+        return [
+            {"idx": row["idx"], "link": row["link"], "kind": DocumentKind(row["kind"])}
+            for row in self._cur
+        ]
 
     def get_doc_instrs(self, idx: int) -> list[Instruction]:
         """Fetch instructions for a document with this identifier."""
@@ -122,7 +129,7 @@ class InstructionDatabase:
                 res.append(
                     {
                         "step": last_step,
-                        "inst": row["inst"],
+                        "inst": Mnemonic(row["inst"]),
                         "attrs": {row["kind"]: row["val"]},
                     }
                 )

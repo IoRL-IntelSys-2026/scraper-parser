@@ -1,7 +1,7 @@
 -- Describes the target document's file type.
 insert into doc_type (kind) values
-  ('html'),
-  ('pdf');
+  (1), -- HTML
+  (2); -- PDF
 
 -- Links that lead to the required document.
 insert into doc_link (link) values
@@ -16,15 +16,15 @@ insert into doc_link (link) values
   ('https://www.rudn.ru/science/dad/doctorantura/');
 
 insert into document (idx, link, kind) values
-  (1, 'https://admission.rudn.ru/undergraduate/timing/', 'pdf'),
-  (2, 'https://admission.rudn.ru/master/timing/', 'pdf'),
-  (3, 'https://admission.rudn.ru/postgraduate/timing/', 'pdf'),
-  (4, 'https://admission.rudn.ru/internship/timing/', 'pdf'),
-  (5, 'https://admission.rudn.ru/undergraduate/', 'html'),
-  (6, 'https://admission.rudn.ru/master/', 'html'),
-  (7, 'https://admission.rudn.ru/postgraduate/', 'html'),
-  (8, 'https://admission.rudn.ru/internship/', 'html'),
-  (9, 'https://www.rudn.ru/science/dad/doctorantura/', 'html');
+  (1, 'https://admission.rudn.ru/undergraduate/timing/', 2),
+  (2, 'https://admission.rudn.ru/master/timing/', 2),
+  (3, 'https://admission.rudn.ru/postgraduate/timing/', 2),
+  (4, 'https://admission.rudn.ru/internship/timing/', 2),
+  (5, 'https://admission.rudn.ru/undergraduate/', 1),
+  (6, 'https://admission.rudn.ru/master/', 1),
+  (7, 'https://admission.rudn.ru/postgraduate/', 1),
+  (8, 'https://admission.rudn.ru/internship/', 1),
+  (9, 'https://www.rudn.ru/science/dad/doctorantura/', 1);
 
 /*
  * Instruction descriptions:
@@ -41,11 +41,11 @@ insert into document (idx, link, kind) values
  *    by the element with these attributes, similar to
  *    the "Save link as..." action in most browsers.
  */
-insert into instruction (title) values
-  ('click_first'),
-  ('extract_subtree'),
-  ('if_matches'),
-  ('download_target');
+insert into instruction (inst) values
+  (1), -- click_first
+  (2), -- extract_subtree
+  (3), -- if_matches
+  (4); -- download_target
 
 /*
  * Attribute descriptions:
@@ -65,14 +65,14 @@ insert into attribute (attr) values
   ('text'),
   ('data-editor');
 
-insert into doc_inst values
-  (1, 1, 'download_target'),
-  (2, 1, 'download_target'),
-  (3, 1, 'download_target'),
-  (4, 1, 'download_target'),
-  (9, 1, 'extract_subtree');
+insert into doc_inst (doc, step, inst) values
+  (1, 1, 4),
+  (2, 1, 4),
+  (3, 1, 4),
+  (4, 1, 4),
+  (9, 1, 2);
 
-insert into inst_attr values
+insert into inst_attr (doc, step, kind, val) values
   (1, 1, 'tag', 'a'),
   (1, 1, 'data-editor', 'pdf.link'),
   (2, 1, 'tag', 'a'),
