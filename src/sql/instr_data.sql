@@ -7,15 +7,19 @@ insert into doc_type (kind) values
 insert into doc_link (link) values
   ('https://admission.rudn.ru/undergraduate/'), -- поступление бакалавриат/специалитет
   ('https://admission.rudn.ru/master/'), -- поступление магситратура
-  ('https://admission.rudn.ru/postgraduate/'), -- поступлениет аспирантура
+  ('https://admission.rudn.ru/postgraduate/'), -- поступление аспирантура
   ('https://admission.rudn.ru/internship/'), -- поступление ординатура
   ('https://admission.rudn.ru/undergraduate/timing/'), -- сроки приема бакалавриат/специалитет
   ('https://admission.rudn.ru/master/timing/'), -- сроки приема магистратура
   ('https://admission.rudn.ru/postgraduate/timing/'), -- сроки приема аспирантура
   ('https://admission.rudn.ru/internship/timing/'), -- сроки приема ординатура
-  ('https://www.rudn.ru/science/dad/doctorantura/'), -- Докторантура
-  ('https://www.rudn.ru/sveden/education/employment/'), -- Сведения о трудоустройстве выпускников в виде численности трудоустроенных выпускников прошлого учебного года
-  ('https://www.rudn.ru/sveden/catering/'), -- Организация питания в образовательной организации
+  ('https://www.rudn.ru/science/dad/doctorantura/'), -- докторантура
+  /*
+   * сведения о трудоустройстве выпускников в виде численности
+   * трудоустроенных выпускников прошлого учебного года
+   */
+  ('https://www.rudn.ru/sveden/education/employment/'),
+  ('https://www.rudn.ru/sveden/catering/'), -- организация питания в образовательной организации
   ('https://www.rudn.ru/life/accomodation'); -- проживание
   
   
@@ -29,9 +33,9 @@ insert into document (idx, link, kind) values
   (7, 'https://admission.rudn.ru/postgraduate/', 1),
   (8, 'https://admission.rudn.ru/internship/', 1),
   (9, 'https://www.rudn.ru/science/dad/doctorantura/', 1),
-  (10 'https://www.rudn.ru/sveden/education/employment/'1),
-  (11 'https://www.rudn.ru/sveden/catering/'1),
-  (12 'https://www.rudn.ru/life/accomodation'1);
+  (10, 'https://www.rudn.ru/sveden/education/employment/', 1),
+  (11, 'https://www.rudn.ru/sveden/catering/', 1),
+  (12, 'https://www.rudn.ru/life/accomodation', 1);
 
 /*
  * Instruction descriptions:
@@ -92,4 +96,4 @@ insert into inst_attr (doc, step, kind, val) values
   (9, 1, 'tag', 'div'),
   (9, 1, 'class', 'article__one-inner'),
   (10, 1, 'tag', 'div'),
-  (10, 1, 'class', 'article__one-inner');
+  (10, 1, 'id', 'vikon-content');
