@@ -21,8 +21,7 @@ insert into doc_link (link) values
   ('https://www.rudn.ru/sveden/education/employment/'),
   ('https://www.rudn.ru/sveden/catering/'), -- организация питания в образовательной организации
   ('https://www.rudn.ru/life/accomodation/'); -- проживание
-  
-  
+
 insert into document (idx, link, kind) values
   (1, 'https://admission.rudn.ru/undergraduate/timing/', 2),
   (2, 'https://admission.rudn.ru/master/timing/', 2),
