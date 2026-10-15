@@ -20,7 +20,7 @@ insert into doc_link (link) values
    */
   ('https://www.rudn.ru/sveden/education/employment/'),
   ('https://www.rudn.ru/sveden/catering/'), -- организация питания в образовательной организации
-  ('https://www.rudn.ru/life/accomodation'); -- проживание
+  ('https://www.rudn.ru/life/accomodation/'); -- проживание
   
   
 insert into document (idx, link, kind) values
@@ -35,7 +35,7 @@ insert into document (idx, link, kind) values
   (9, 'https://www.rudn.ru/science/dad/doctorantura/', 1),
   (10, 'https://www.rudn.ru/sveden/education/employment/', 1),
   (11, 'https://www.rudn.ru/sveden/catering/', 1),
-  (12, 'https://www.rudn.ru/life/accomodation', 1);
+  (12, 'https://www.rudn.ru/life/accomodation/', 1);
 
 /*
  * Instruction descriptions:
