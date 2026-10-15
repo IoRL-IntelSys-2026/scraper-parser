@@ -32,5 +32,5 @@ named as the original file but with the "test_"
 prefix. So one can select all test files like
 this:
 ```shell
-python3 -m pytest src/**/test_*.py
+python3 -m pytest
 ```
