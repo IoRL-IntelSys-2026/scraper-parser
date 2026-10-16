@@ -15,26 +15,63 @@ from urllib.parse import urljoin, unquote, urlparse
 from instr_db import InstructionDatabase
 from instr_db import Mnemonic
 
-# этот код находит, где находится папка (это для пичарма)
-BASE_DIR = Path(__file__).resolve().parents[2] # папка src
-DB_PATH = BASE_DIR / "instr_db.sqlite3"
+# оформлено в виде функции, по просьбе asdftowel
+def path_chooser(
+    db_path: Path | None = None, # локация для датабазы
+    downloads: Path | None = None # локация для загрузок
+) -> tuple[InstructionDatabase, Path]:
 
-DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+    # стандартная локация для датабазы (в папке sql)
+    if db_path is None:
+        db_path = Path(__file__).resolve().parents[2] / "instr_db.sqlite3"
 
-# проверка наличия уже существующей датабазы
-if not DB_PATH.exists():
-    db = InstructionDatabase.bootstrap(str(DB_PATH))
-else:
-    db = InstructionDatabase(str(DB_PATH))
+    # дефолтное название для файла
+    if db_path.is_dir() or not db_path.suffix:
+        db_path = db_path / "instr_db.sqlite3"
 
-# папка downloads для файлов
-download_dir = str(
-    Path(__file__).resolve().parent / "downloads"
-)
-os.makedirs(download_dir, exist_ok=True)
+    db_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # создает датабазу либо открывает существующую
+    if not db_path.exists():
+        db = InstructionDatabase.bootstrap(str(db_path))
+    else:
+        db = InstructionDatabase(str(db_path))
+
+    # стандартное место для папки загрузок
+    if downloads is None:
+        downloads = Path(__file__).resolve().parent / "downloads"
+
+    downloads.mkdir(parents=True, exist_ok=True)
+
+    return db, downloads
+
+# я ОЧЕНЬ хотел назвать функцию "the_downloaderrrrrr" но в рамках чистого кода делать так не буду
+# оформлено в виде функции, по просьбе asdftowel
+def the_downloader(db, download_dir, options):
+    driver = None
+
+    try:
+        driver = webdriver.Edge(options=options)
+
+        for page in db.get_pages():
+            instructions = db.get_doc_instrs(page["idx"])
+
+            if not instructions:
+                print(f"Нету инструкций - совершён пропуск: {page['link']}")
+                continue
+
+            print(f"\nСкачивание: {page['link']}")
+            process_page(driver, db, page, download_dir)
+
+    finally:
+        if driver is not None:
+            driver.quit()
+
+db, downloads = path_chooser()
+download_dir = str(downloads)
 
 options = Options()
-# это заставляет edge не быть проблемным и нормально скачивать фалы
+# это заставляет edge не быть проблемным и нормально скачивать файлы
 options.add_experimental_option("prefs", {
     "download.default_directory": download_dir,
     "download.prompt_for_download": False,
@@ -55,7 +92,7 @@ def process_page(driver, db, page, download_dir):
         action = instruction["inst"]
 
         # уточнение если инструкция - это скачивание
-        if action == Mnemonic.DOWNLOAD_TARGET:
+        if action is Mnemonic.DOWNLOAD_TARGET:
             # найти указанный элемент
             tag = attrs.get("tag", "a")
             elements = driver.find_elements(By.TAG_NAME, tag)
@@ -81,14 +118,12 @@ def process_page(driver, db, page, download_dir):
             response = requests.get(url, timeout=30)
             response.raise_for_status()
 
-            filename = unquote(os.path.basename(url.split("?")[0])) # unquote делает названия файлов нормальными
+            filename = unquote(Path(url.split("?")[0]).name) # unquote делает названия файлов нормальными
             if not filename:
                 filename = f"document_{page['idx']}.pdf"
 
-            filepath = os.path.join(download_dir, filename)
-
-            with open(filepath, "wb") as file:
-                file.write(response.content)
+            filepath = Path(download_dir) / filename
+            filepath.write_bytes(response.content)
 
             print(f"Скачено: {filename}")
 
@@ -124,28 +159,7 @@ def process_page(driver, db, page, download_dir):
                 print(f"HTML скачен: {filename}")
             else:
                 print(f"Не найден подходящий HTML элемент в {page['link']}")
-
-
-
-driver = None
-
-try:
-    driver = webdriver.Edge(options=options)
-
-    for page in db.get_pages():
-        instructions = db.get_doc_instrs(page["idx"])
-
-        if not instructions:
-            print(f"Нету инструкций - совершён пропуск: {page['link']}")
-            continue
-
-        print(f"\nСкачивание: {page['link']}")
-        process_page(driver, db, page, download_dir)
-# фейлсейф чтобы программа работала при ошибке
-finally:
-    if driver is not None:
-        driver.quit()
-
-    db._con.close()
+if __name__ == "__main__":
+    the_downloader(db, download_dir, options)
 
 print("Все скаченные файлы находятся в папке downloads.")
