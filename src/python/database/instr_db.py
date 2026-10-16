@@ -56,7 +56,7 @@ class InstructionDatabase:
 
         # If the provided path doesn't exist, this is likely a mistake,
         # so the OSError exception is intentionally propagated.
-        actual_path = pathlib.Path(db_loc).resolve(True)
+        actual_path = pathlib.Path(db_loc).resolve()
         # Make sure that the path ends in a filename.
         if not actual_path.name:
             logger.warning('File name missing, assuming it is "instr_db.sqlite3"')
