@@ -130,19 +130,26 @@ def process_page(driver, db, page, download_dir):
         # код для HTML
         elif action == Mnemonic.EXTRACT_SUBTREE:
             tag = attrs.get("tag", "*")
-            elements = driver.find_elements(By.TAG_NAME, tag)
-
-            for name in ("id", "class"):
-                if name in attrs:
-                    elements = [
-                        element for element in elements
-                        if (
-                            attrs[name] in
-                            (element.get_attribute(name) or "").split()
-                            if name == "class"
-                            else element.get_attribute(name) == attrs[name]
-                        )
-                    ]
+            # бог знает почему, но у меня вылезла ошибка при импорте html на wifi рудн, поэтому делаем пока так
+            from selenium.common.exceptions import StaleElementReferenceException
+            for attempt in range(2):
+                try:
+                    elements = driver.find_elements(By.TAG_NAME, tag)
+                    for name in ("id", "class"):
+                        if name in attrs:
+                            elements = [
+                                element for element in elements
+                                if (
+                                    attrs[name] in (element.get_attribute(name) or "").split()
+                                    if name == "class"
+                                    else element.get_attribute(name) == attrs[name]
+                                )
+                            ]
+                    break  # все классно и супер
+                except StaleElementReferenceException:
+                    if attempt == 1:
+                        elements = []  # продолжить код не ломаясь
+                    continue
 
             # скачать страницу как файл html
             if elements:
