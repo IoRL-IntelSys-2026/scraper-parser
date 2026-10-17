@@ -3,7 +3,6 @@
 __all__ = ["DocumentKind", "InstructionDatabase", "Mnemonic"]
 import enum
 import logging
-import os
 import pathlib
 import sqlite3
 from typing import Self, TypedDict
@@ -47,18 +46,11 @@ class InstructionDatabase:
         or the `SCRAPER_DB_PATH` environment variable if `db_loc`
         is empty or `None`, then converts it into a `Path`."""
         if not db_loc:
-            db_env_path = os.getenv("SCRAPER_DB_PATH")
-            if not db_env_path:
-                logger.warning("No path was provided, using current directory")
-                db_loc = "."
-            else:
-                db_loc = db_env_path
-
-        # If the provided path doesn't exist, this is likely a mistake,
-        # so the OSError exception is intentionally propagated.
+            logger.warning("No path was provided, using current directory")
+            db_loc = "."
         actual_path = pathlib.Path(db_loc).resolve()
         # Make sure that the path ends in a filename.
-        if not actual_path.name:
+        if not (actual_path.is_file() or actual_path.suffix):
             logger.warning('File name missing, assuming it is "instr_db.sqlite3"')
             actual_path /= "instr_db.sqlite3"
         return actual_path
@@ -111,6 +103,15 @@ class InstructionDatabase:
             for row in self._cur
         ]
 
+    @staticmethod
+    def _conv_attribute(kind: str, val: str) -> str | frozenset[str]:
+        """Since an attribute is actually a union, this function
+        converts the attribute value into a specific type."""
+        if kind == "class":
+            return frozenset(val.split())
+        else:
+            return val
+
     def get_doc_instrs(self, idx: int) -> list[Instruction]:
         """Fetch instructions for a document with this identifier."""
         res: list[Instruction] = []
@@ -130,9 +131,9 @@ class InstructionDatabase:
                     {
                         "step": last_step,
                         "inst": Mnemonic(row["inst"]),
-                        "attrs": {row["kind"]: row["val"]},
+                        "attrs": {row["kind"]: self._conv_attribute(row["kind"], row["val"])},
                     }
                 )
             else:
-                res[-1]["attrs"][row["kind"]] = row["val"]
+                res[-1]["attrs"][row["kind"]] = self._conv_attribute(row["kind"], row["val"])
         return res
