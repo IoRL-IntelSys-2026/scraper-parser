@@ -1,5 +1,5 @@
-ast-serialize == 0.13.0 \
---hash=sha256:f30f0e59be30c0c9540e8908b14874bc8d3c1d52a4562a4cfb426b003bd6c28b
+ast-serialize == 0.13.1 \
+--hash=sha256:121e1d08d58b75c15491cc3003609cbad71ac2b0016043c36d30a6b2032b6605
 librt == 0.16.0 \
 --hash=sha256:e56aaf8c167548dc8e5d6f3bd0f48dcdd299a23c73be3f744aab79d99e9c7f5d
 mypy == 2.4.0 \
