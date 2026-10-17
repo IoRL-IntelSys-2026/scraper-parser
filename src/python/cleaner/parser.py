@@ -6,10 +6,6 @@ from typing import Final, TypeIs
 from bs4 import BeautifulSoup, Comment
 from bs4.element import NavigableString, PageElement, Tag
 
-# Configure logging at the entry point of your script
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
 logger = logging.getLogger(__name__)
 
 
