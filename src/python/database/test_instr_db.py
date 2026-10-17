@@ -19,6 +19,6 @@ def test_instrdb_methods() -> None:
             {
                 "step": 1,
                 "inst": Mnemonic.EXTRACT_SUBTREE,
-                "attrs": {"tag": "div", "class": "article__one-inner"},
+                "attrs": {"tag": "div", "class": frozenset({"article__one-inner"})},
             }
         ]
