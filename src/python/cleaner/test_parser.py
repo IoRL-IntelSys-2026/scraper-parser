@@ -1,11 +1,21 @@
 import re
+import tempfile
 from pathlib import Path
+
 from parser import clean_html_directory
 
-def test_clean_html(tmp_path: Path) -> None:
+
+def _normalize_whitespace(text: str) -> str:
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def test_clean_html() -> None:
     # 1. Create a dummy uncleaned HTML page inside a temporary testing folder
-    input_file = tmp_path / "example.html"
-    input_file.write_text("""<html>
+    with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as d:
+        tmp_path = Path(d)
+        input_file = tmp_path / "example.html"
+        input_file.write_text(
+            """<html>
   <head>
     <script>alert("this is a test");</script>
      <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -20,20 +30,19 @@ def test_clean_html(tmp_path: Path) -> None:
     </div>
     <script>alert("this is a test");</script>
   </body>
-</html>""", encoding="utf-8")
+</html>""",
+            encoding="utf-8",
+        )
 
-    # 2. Run your cleaning function on the test folder
-    clean_html_directory(target_dir=tmp_path)
-    
-    # 3. Verify the script stripped elements and flattened the structure properly
-    output_file = tmp_path / "cleaned_example.html"
-    assert output_file.exists(), "The cleaned file output was not generated."
-    
-    def normalize_whitespace(text: str) -> str:
-        return re.sub(r'\s+', ' ', text).strip()
+        # 2. Run your cleaning function on the test folder
+        clean_html_directory(target_dir=tmp_path)
 
-    actual_output = output_file.read_text(encoding="utf-8")
-    
+        # 3. Verify the script stripped elements and flattened the structure properly
+        output_file = tmp_path / "cleaned_example.html"
+        assert output_file.exists(), "The cleaned file output was not generated."
+
+        actual_output = output_file.read_text(encoding="utf-8")
+
     # Matches BeautifulSoup's attribute order and structural unnesting limit
     expected_output = """<html>
   <head>
@@ -46,4 +55,6 @@ def test_clean_html(tmp_path: Path) -> None:
   </body>
 </html>"""
 
-    assert normalize_whitespace(actual_output) == normalize_whitespace(expected_output)
+    assert _normalize_whitespace(actual_output) == _normalize_whitespace(
+        expected_output
+    )
