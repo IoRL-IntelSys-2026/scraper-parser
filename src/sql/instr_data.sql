@@ -20,8 +20,17 @@ insert into doc_link (link) values
    */
   ('https://www.rudn.ru/sveden/education/employment/'),
   ('https://www.rudn.ru/sveden/catering/'), -- организация питания в образовательной организации
-  ('https://www.rudn.ru/life/accomodation/'); -- проживание
-
+  ('https://www.rudn.ru/life/accomodation/'), -- проживание
+  ('https://www.rudn.ru/life/multifunctional-center'), -- мфц
+  ('https://handbook.rudn.ru/help/social.html'), -- социальная карта
+  ('https://handbook.rudn.ru/help/mail.html'), -- корпоративная почта
+  ('https://handbook.rudn.ru/help/id.html'), -- индивидуальный цифровой ключ (RUDN ID)
+  ('https://handbook.rudn.ru/help/passport.html'), -- Паспортно-визовый, миграционный и регистрационный учет
+  ('https://handbook.rudn.ru/help/war.html'), -- Военно-учетный отдел (для студентов из РФ)
+  ('https://handbook.rudn.ru/help/duplicate.html'), -- Справки и дубликаты документов
+  ('https://handbook.rudn.ru/help/campus.html'); -- оформление карты
+  
+  
 insert into document (idx, link, kind) values
   (1, 'https://admission.rudn.ru/undergraduate/timing/', 2),
   (2, 'https://admission.rudn.ru/master/timing/', 2),
@@ -34,7 +43,16 @@ insert into document (idx, link, kind) values
   (9, 'https://www.rudn.ru/science/dad/doctorantura/', 1),
   (10, 'https://www.rudn.ru/sveden/education/employment/', 1),
   (11, 'https://www.rudn.ru/sveden/catering/', 1),
-  (12, 'https://www.rudn.ru/life/accomodation/', 1);
+  (12, 'https://www.rudn.ru/life/accomodation/', 1),
+  (13, 'https://www.rudn.ru/life/multifunctional-center', 1),
+  (14, 'https://handbook.rudn.ru/help/social.html', 1),
+  (15, 'https://handbook.rudn.ru/help/mail.html', 1),
+  (16, 'https://handbook.rudn.ru/help/id.html', 1),
+  (17, 'https://handbook.rudn.ru/help/passport.html', 1),
+  (18, 'https://handbook.rudn.ru/help/war.html', 1),
+  (19, 'https://handbook.rudn.ru/help/duplicate.html', 1),
+  (20, 'https://handbook.rudn.ru/help/campus.html', 1);
+
 
 /*
  * Instruction descriptions:
@@ -80,8 +98,15 @@ insert into doc_inst (doc, step, inst) values
   (2, 1, 4),
   (3, 1, 4),
   (4, 1, 4),
+  (6, 1, 2),
+  (7, 1, 2),
   (9, 1, 2),
-  (10, 1, 2);
+  (10, 1, 2),
+  (11, 1, 2),
+  (12, 1, 2),
+  (13, 1, 2),
+  (14, 1, 2);
+
 
 insert into inst_attr (doc, step, kind, val) values
   (1, 1, 'tag', 'a'),
@@ -92,7 +117,19 @@ insert into inst_attr (doc, step, kind, val) values
   (3, 1, 'data-editor', 'pdf.link'),
   (4, 1, 'tag', 'a'),
   (4, 1, 'data-editor', 'pdf.link'),
+  (6, 1, 'tag', 'div'),
+  (6, 1, 'class', 'container'),
+  (7, 1, 'tag', 'div'),
+  (7, 1, 'class', 'container'),
   (9, 1, 'tag', 'div'),
   (9, 1, 'class', 'article__one-inner'),
   (10, 1, 'tag', 'div'),
-  (10, 1, 'id', 'vikon-content');
+  (10, 1, 'id', 'vikon-content'),
+  (11, 1, 'tag', 'div'),
+  (11, 1, 'id', 'vikon-content'),
+  (12, 1, 'tag', 'div'),
+  (12, 1, 'class', 'acc-page'),
+  (13, 1, 'tag', 'div'),
+  (13, 1, 'class', 'content'),
+  (14, 1, 'tag', 'div'),
+  (14, 1, 'class', 'container-fluid second');
