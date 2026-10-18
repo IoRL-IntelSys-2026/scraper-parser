@@ -4,7 +4,10 @@ pragma foreign_keys=ON;
 -- Links to pages where the document can be found.
 create table if not exists doc_link (
   link text not null unique primary key
-    on conflict rollback check (link like 'https://%/')
+    on conflict rollback check (
+      link like 'https://%/'
+      or link like 'https://%.html'
+    )
 ) strict, without rowid;
 
 /*
