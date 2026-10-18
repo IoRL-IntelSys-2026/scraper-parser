@@ -5,7 +5,7 @@ import enum
 import logging
 import pathlib
 import sqlite3
-from typing import Final, ReadOnly, Required, Self, TypedDict
+from typing import Final, ReadOnly, Self, TypedDict
 
 
 class DocumentKind(enum.Enum):
@@ -20,22 +20,12 @@ class Mnemonic(enum.Enum):
     DOWNLOAD_TARGET = 4
 
 
-# Needs functional declaration because "class" is a keyword
-InstAttribute = TypedDict("InstAttribute", {
-    "tag": Required[ReadOnly[str]],
-    "id": ReadOnly[str],
-    "class": ReadOnly[frozenset[str]],
-    "text": ReadOnly[str],
-    "data-editor": ReadOnly[str]
-}, total=False)
-
-
 class Instruction(TypedDict):
     """Represents an individual instruction for the web scraper."""
 
     step: ReadOnly[int]
     inst: ReadOnly[Mnemonic]
-    attrs: ReadOnly[InstAttribute]
+    attrs: ReadOnly[dict[str, str | frozenset[str]]]
 
 
 class TargetPage(TypedDict):
