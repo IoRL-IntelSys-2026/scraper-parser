@@ -1,19 +1,21 @@
 # https://i.pinimg.com/474x/f7/20/20/f72020244e330f7415319513208af87d.jpg
 
-import os
-import requests
+import certifi
+import logging
+import ssl
 
+from instr_db import InstructionDatabase, Mnemonic
+from pathlib import Path
 # да я использую edge, я злой
 from selenium import webdriver
 from selenium.webdriver.edge.options import Options
 from selenium.webdriver.common.by import By
 
-from pathlib import Path
 # библиотека urllib очень мощная для работы со ссылками
 from urllib.parse import urljoin, unquote, urlparse
+from urllib.request import urlopen
 
-from instr_db import InstructionDatabase
-from instr_db import Mnemonic
+logger = logging.getLogger(__name__)
 
 # оформлено в виде функции, по просьбе asdftowel
 def path_chooser(
@@ -23,31 +25,37 @@ def path_chooser(
 
     # стандартная локация для датабазы (в папке sql)
     if db_path is None:
-        db_path = Path(__file__).resolve().parents[2] / "instr_db.sqlite3"
+        db_path = Path(__file__).parents[2] / "sql/instr_db.sqlite3"
+        logger.warning(f"Путь до БД не указан, используется {db_path}")
 
+    # PathInfo кэширует информацию о пути, может уменьшить кол-во
+    # stat()ов
     # дефолтное название для файла
-    if db_path.is_dir() or not db_path.suffix:
+    if db_path.info.is_dir() or not db_path.suffix:
         db_path = db_path / "instr_db.sqlite3"
 
-    db_path.parent.mkdir(parents=True, exist_ok=True)
-
     # создает датабазу либо открывает существующую
-    if not db_path.exists():
+    if not db_path.info.is_file():
         db = InstructionDatabase.bootstrap(str(db_path))
     else:
-        db = InstructionDatabase(str(db_path))
+        db = InstructionDatabase(db_path)
 
     # стандартное место для папки загрузок
     if downloads is None:
-        downloads = Path(__file__).resolve().parent / "downloads"
+        downloads = Path(__file__).parent / "downloads"
+        logger.warning(f"Папка для загрузок не указана, используется {downloads}")
 
-    downloads.mkdir(parents=True, exist_ok=True)
+    downloads.mkdir(exist_ok=True)
 
     return db, downloads
 
 # я ОЧЕНЬ хотел назвать функцию "the_downloaderrrrrr" но в рамках чистого кода делать так не буду
 # оформлено в виде функции, по просьбе asdftowel
-def the_downloader(db, download_dir, options):
+def the_downloader(
+    db: InstructionDatabase,
+    download_dir: Path,
+    options: Options
+) -> None:
     driver = None
 
     try:
@@ -57,18 +65,16 @@ def the_downloader(db, download_dir, options):
             instructions = db.get_doc_instrs(page["idx"])
 
             if not instructions:
-                print(f"Нету инструкций - совершён пропуск: {page['link']}")
+                logger.warn(f"Нет инструкций - совершён пропуск: {page['link']}")
                 continue
 
-            print(f"\nСкачивание: {page['link']}")
+            logger.info(f"Скачивание: {page['link']}")
             process_page(driver, db, page, download_dir)
 
     finally:
         if driver is not None:
             driver.quit()
-
-db, downloads = path_chooser()
-download_dir = str(downloads)
+    logger.info(f"Все скаченные файлы находятся в папке {download_dir}.")
 
 options = Options()
 # это заставляет edge не быть проблемным и нормально скачивать файлы
@@ -105,7 +111,7 @@ def process_page(driver, db, page, download_dir):
                     ]
 
             if not elements:
-                print("Ссылка для скачивания не найдена!")
+                logger.error("Ссылка для скачивания не найдена!")
                 continue
 
             # получить ссылку сайта
@@ -114,21 +120,23 @@ def process_page(driver, db, page, download_dir):
                 elements[0].get_attribute("href")
             )
 
-            # таймер для ожидания - 30 секунд, но можно изменить
-            response = requests.get(url, timeout=30)
-            response.raise_for_status()
-
             filename = unquote(Path(url.split("?")[0]).name) # unquote делает названия файлов нормальными
             if not filename:
                 filename = f"document_{page['idx']}.pdf"
+            filepath = download_dir / filename
 
-            filepath = Path(download_dir) / filename
-            filepath.write_bytes(response.content)
+            # таймер для ожидания - 30 секунд, но можно изменить
+            with urlopen(
+                url,
+                timeout=30,
+                context=ssl.create_default_context(cafile=certifi.where())
+            ) as sock, filepath.open("wb") as f:
+                sock.readinto(f)
 
-            print(f"Скачено: {filename}")
+            logger.info(f"Скачано: {filename}")
 
         # код для HTML
-        elif action == Mnemonic.EXTRACT_SUBTREE:
+        elif action is Mnemonic.EXTRACT_SUBTREE:
             tag = attrs.get("tag", "*")
             # бог знает почему, но у меня вылезла ошибка при импорте html на wifi рудн, поэтому делаем пока так
             from selenium.common.exceptions import StaleElementReferenceException
@@ -154,19 +162,14 @@ def process_page(driver, db, page, download_dir):
             # скачать страницу как файл html
             if elements:
                 # я копирую последнее слово из ссылки чтобы было понятнее, что скачалось помимо просто "page_9.html"
-                last_word = urlparse(page["link"]).path.rstrip("/").split("/")[-1]
+                last_word = urlparse(page["link"]).path.rstrip"/").split("/")[-1]
                 filename = f"page_{page['idx']} {unquote(last_word)}.html"
-                filepath = os.path.join(download_dir, filename)
-
-                with open(filepath, "w", encoding="utf-8") as file:
-                    file.write(
-                        elements[0].get_attribute("outerHTML")
-                    )
-
-                print(f"HTML скачен: {filename}")
+                filepath = download_dir / filename
+                filepath.write_text(elements[0].get_attribute("outerHTML"), encoding="utf-8")
+                logger.info(f"HTML скачан: {filename}")
             else:
-                print(f"Не найден подходящий HTML элемент в {page['link']}")
-if __name__ == "__main__":
-    the_downloader(db, download_dir, options)
+                logger.error(f"Не найден подходящий HTML элемент в {page['link']}")
 
-print("Все скаченные файлы находятся в папке downloads.")
+if __name__ == "__main__":
+    db, downloads = path_chooser()
+    the_downloader(db, downloads, options)
