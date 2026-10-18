@@ -1,11 +1,11 @@
 """Functions for interacting with the instructions database."""
 
-__all__ = ["DocumentKind", "InstructionDatabase", "Mnemonic"]
+__all__ = ["DocumentKind", "InstructionDatabase", "Mnemonic", "TargetPage"]
 import enum
 import logging
 import pathlib
 import sqlite3
-from typing import Self, TypedDict
+from typing import Final, ReadOnly, Required, Self, TypedDict
 
 
 class DocumentKind(enum.Enum):
@@ -20,20 +20,30 @@ class Mnemonic(enum.Enum):
     DOWNLOAD_TARGET = 4
 
 
+# Needs functional declaration because "class" is a keyword
+InstAttribute = TypedDict("InstAttribute", {
+    "tag": Required[ReadOnly[str]]
+    "id": ReadOnly[str],
+    "class": ReadOnly[frozenset[str]],
+    "text": ReadOnly[str],
+    "data-editor": ReadOnly[str]
+}, total=False)
+
+
 class Instruction(TypedDict):
     """Represents an individual instruction for the web scraper."""
 
-    step: int
-    inst: Mnemonic
-    attrs: dict[str, str]
+    step: ReadOnly[int]
+    inst: ReadOnly[Mnemonic]
+    attrs: ReadOnly[InstAttribute]
 
 
 class TargetPage(TypedDict):
     """Represents a link to a webpage that needs to be parsed."""
 
-    idx: int
-    link: str
-    kind: DocumentKind
+    idx: ReadOnly[int]
+    link: ReadOnly[str]
+    kind: ReadOnly[DocumentKind]
 
 
 logger = logging.getLogger(__name__)
@@ -64,9 +74,9 @@ class InstructionDatabase:
                 "db_loc must be a path to the location of the instructions database."
             )
 
-        self._con = sqlite3.connect(f"{db_loc.as_uri()}?mode=ro", uri=True)
+        self._con: Final = sqlite3.connect(f"{db_loc.as_uri()}?mode=ro", uri=True)
         self._con.row_factory = sqlite3.Row
-        self._cur = self._con.cursor()
+        self._cur: Final = self._con.cursor()
         # This might need to be changed later
         self._cur.arraysize = 20
 
@@ -77,7 +87,7 @@ class InstructionDatabase:
     def bootstrap(cls, db_loc: str | None) -> Self:
         """Creates a new database using the SQL scripts from the src/sql
         directory."""
-        db_path = cls._convert_to_path(db_loc)
+        db_path: Final = cls._convert_to_path(db_loc)
         # Should paths to bootstrap files be configurable?
         with sqlite3.connect(db_path) as con:
             cur = con.cursor()
@@ -114,7 +124,7 @@ class InstructionDatabase:
 
     def get_doc_instrs(self, idx: int) -> list[Instruction]:
         """Fetch instructions for a document with this identifier."""
-        res: list[Instruction] = []
+        res: Final[list[Instruction]] = []
         last_step = 0
         self._cur.execute(
             "select doc_inst.step, doc_inst.inst, inst_attr.kind,"
