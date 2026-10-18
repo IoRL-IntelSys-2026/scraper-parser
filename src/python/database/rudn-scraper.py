@@ -140,7 +140,7 @@ def process_page(driver, db, page, download_dir):
                             elements = [
                                 element for element in elements
                                 if (
-                                    attrs[name] in (element.get_attribute(name) or "").split()
+                                    attrs[name] == frozenset((element.get_attribute(name) or "").split())
                                     if name == "class"
                                     else element.get_attribute(name) == attrs[name]
                                 )
