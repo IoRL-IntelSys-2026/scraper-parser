@@ -22,7 +22,7 @@ class Mnemonic(enum.Enum):
 
 # Needs functional declaration because "class" is a keyword
 InstAttribute = TypedDict("InstAttribute", {
-    "tag": Required[ReadOnly[str]]
+    "tag": Required[ReadOnly[str]],
     "id": ReadOnly[str],
     "class": ReadOnly[frozenset[str]],
     "text": ReadOnly[str],
