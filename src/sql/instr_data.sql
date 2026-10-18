@@ -21,7 +21,7 @@ insert into doc_link (link) values
   ('https://www.rudn.ru/sveden/education/employment/'),
   ('https://www.rudn.ru/sveden/catering/'), -- организация питания в образовательной организации
   ('https://www.rudn.ru/life/accomodation/'), -- проживание
-  ('https://www.rudn.ru/life/multifunctional-center'), -- мфц
+  ('https://www.rudn.ru/life/multifunctional-center/'), -- мфц
   ('https://handbook.rudn.ru/help/social.html'), -- социальная карта
   ('https://handbook.rudn.ru/help/mail.html'), -- корпоративная почта
   ('https://handbook.rudn.ru/help/id.html'), -- индивидуальный цифровой ключ (RUDN ID)
@@ -44,7 +44,7 @@ insert into document (idx, link, kind) values
   (10, 'https://www.rudn.ru/sveden/education/employment/', 1),
   (11, 'https://www.rudn.ru/sveden/catering/', 1),
   (12, 'https://www.rudn.ru/life/accomodation/', 1),
-  (13, 'https://www.rudn.ru/life/multifunctional-center', 1),
+  (13, 'https://www.rudn.ru/life/multifunctional-center/', 1),
   (14, 'https://handbook.rudn.ru/help/social.html', 1),
   (15, 'https://handbook.rudn.ru/help/mail.html', 1),
   (16, 'https://handbook.rudn.ru/help/id.html', 1),
