@@ -4,12 +4,13 @@ import certifi
 import logging
 import ssl
 
-from instr_db import InstructionDatabase, Mnemonic
+from instr_db import InstructionDatabase, Mnemonic, TargetPage
 from pathlib import Path
 # да я использую edge, я злой
 from selenium import webdriver
-from selenium.webdriver.edge.options import Options
 from selenium.webdriver.common.by import By
+from selenium.webdriver.edge.options import Options
+from selenium.webdriver.remote.webdriver import WebDriver
 
 # библиотека urllib очень мощная для работы со ссылками
 from urllib.parse import urljoin, unquote, urlparse
@@ -87,7 +88,12 @@ options.add_experimental_option("prefs", {
 
 
 
-def process_page(driver, db, page, download_dir):
+def process_page(
+    driver: WebDriver,
+    db: InstructionDatabase,
+    page: TargetPage,
+    download_dir: Path
+):
     driver.get(page["link"])
 
     # инструкции для сайтов
@@ -162,7 +168,7 @@ def process_page(driver, db, page, download_dir):
             # скачать страницу как файл html
             if elements:
                 # я копирую последнее слово из ссылки чтобы было понятнее, что скачалось помимо просто "page_9.html"
-                last_word = urlparse(page["link"]).path.rstrip"/").split("/")[-1]
+                last_word = urlparse(page["link"]).path.rstrip("/").split("/")[-1]
                 filename = f"page_{page['idx']} {unquote(last_word)}.html"
                 filepath = download_dir / filename
                 filepath.write_text(elements[0].get_attribute("outerHTML"), encoding="utf-8")
