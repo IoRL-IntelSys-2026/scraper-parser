@@ -2,19 +2,19 @@
 
 import tempfile
 
-import instr_db
+from .instr_db import *
 
 
 def test_instrdb_methods() -> None:
     with tempfile.NamedTemporaryFile(delete=False) as tmp:
-        idb = instr_db.InstructionDatabase.bootstrap(tmp.name)
+        idb = InstructionDatabase.bootstrap(tmp.name)
         pages = idb.get_pages()
-        page1: instr_db.TargetPage = {
+        page1: TargetPage = {
             "idx": 1,
             "link": "https://admission.rudn.ru/undergraduate/timing/",
             "kind": DocumentKind.PDF,
         }
-        inst9: list[instr_db.Instruction] = [
+        inst9: list[Instruction] = [
             {
                 "step": 1,
                 "inst": Mnemonic.EXTRACT_SUBTREE,
