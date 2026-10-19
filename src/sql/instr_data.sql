@@ -105,7 +105,8 @@ insert into doc_inst (doc, step, inst) values
   (11, 1, 2),
   (12, 1, 2),
   (13, 1, 2),
-  (14, 1, 2);
+  (14, 1, 2),
+  (14, 2, 2); -- в один шаг не выйдет, если не грузить всю страницу
 
 
 insert into inst_attr (doc, step, kind, val) values
@@ -131,5 +132,7 @@ insert into inst_attr (doc, step, kind, val) values
   (12, 1, 'class', 'acc-page'),
   (13, 1, 'tag', 'div'),
   (13, 1, 'class', 'content'),
-  (14, 1, 'tag', 'div'),
-  (14, 1, 'class', 'container-fluid second');
+  (14, 1, 'tag', 'section'),
+  (14, 1, 'class', 'page-subtitle-help'),
+  (14, 2, 'tag', 'section'),
+  (14, 2, 'class', 'main');
