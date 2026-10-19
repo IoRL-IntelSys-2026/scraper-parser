@@ -1,10 +1,11 @@
 # https://i.pinimg.com/474x/f7/20/20/f72020244e330f7415319513208af87d.jpg
 
+import shutil
 import certifi
 import logging
 import ssl
 
-from .instr_db import InstructionDatabase, Mnemonic, TargetPage
+from instr_db import InstructionDatabase, Mnemonic, TargetPage # если перед instru_db стоит точка ... он не запускается в pycharm
 from pathlib import Path
 # да я использую edge, я злой
 from selenium import webdriver
@@ -66,7 +67,7 @@ def the_downloader(
             instructions = db.get_doc_instrs(page["idx"])
 
             if not instructions:
-                logger.warn(f"Нет инструкций - совершён пропуск: {page['link']}")
+                logger.warning(f"Нет инструкций - совершён пропуск: {page['link']}") # warn - устаревший
                 continue
 
             logger.info(f"Скачивание: {page['link']}")
@@ -127,7 +128,7 @@ def process_page(
                 timeout=30,
                 context=ssl.create_default_context(cafile=certifi.where())
             ) as sock, filepath.open("wb") as f:
-                sock.readinto(f)
+                shutil.copyfileobj(sock, f)
 
             logger.info(f"Скачано: {filename}")
 
@@ -144,7 +145,7 @@ def process_page(
                             elements = [
                                 element for element in elements
                                 if (
-                                    attrs[name] == frozenset((element.get_attribute(name) or "").split())
+                                    attrs[name] <= frozenset((element.get_attribute(name) or "").split()) # <= проверяет, присутствуют ли все запрашиваемые классы, даже если у элемента есть дополнительные классы
                                     if name == "class"
                                     else element.get_attribute(name) == attrs[name]
                                 )
