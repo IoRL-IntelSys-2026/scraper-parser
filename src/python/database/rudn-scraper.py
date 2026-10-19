@@ -4,7 +4,7 @@ import certifi
 import logging
 import ssl
 
-from instr_db import InstructionDatabase, Mnemonic, TargetPage
+from .instr_db import InstructionDatabase, Mnemonic, TargetPage
 from pathlib import Path
 # да я использую edge, я злой
 from selenium import webdriver
@@ -77,23 +77,13 @@ def the_downloader(
             driver.quit()
     logger.info(f"Все скаченные файлы находятся в папке {download_dir}.")
 
-options = Options()
-# это заставляет edge не быть проблемным и нормально скачивать файлы
-options.add_experimental_option("prefs", {
-    "download.default_directory": download_dir,
-    "download.prompt_for_download": False,
-    "download.directory_upgrade": True,
-    "plugins.always_open_pdf_externally": True
-})
-
-
 
 def process_page(
     driver: WebDriver,
     db: InstructionDatabase,
     page: TargetPage,
     download_dir: Path
-):
+) -> None:
     driver.get(page["link"])
 
     # инструкции для сайтов
@@ -171,11 +161,19 @@ def process_page(
                 last_word = urlparse(page["link"]).path.rstrip("/").split("/")[-1]
                 filename = f"page_{page['idx']} {unquote(last_word)}.html"
                 filepath = download_dir / filename
-                filepath.write_text(elements[0].get_attribute("outerHTML"), encoding="utf-8")
+                filepath.write_text(elements[0].get_attribute("outerHTML") or "", encoding="utf-8")
                 logger.info(f"HTML скачан: {filename}")
             else:
                 logger.error(f"Не найден подходящий HTML элемент в {page['link']}")
 
 if __name__ == "__main__":
     db, downloads = path_chooser()
+    options = Options()
+    # это заставляет edge не быть проблемным и нормально скачивать файлы
+    options.add_experimental_option("prefs", {
+        "download.default_directory": str(downloads),
+        "download.prompt_for_download": False,
+        "download.directory_upgrade": True,
+        "plugins.always_open_pdf_externally": True
+    })
     the_downloader(db, downloads, options)
