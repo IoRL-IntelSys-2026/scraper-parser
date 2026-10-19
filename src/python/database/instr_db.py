@@ -1,12 +1,17 @@
 """Functions for interacting with the instructions database."""
 
-__all__ = ["DocumentKind", "InstructionDatabase", "Mnemonic"]
+__all__ = [
+    "DocumentKind",
+    "Instruction",
+    "InstructionDatabase",
+    "Mnemonic",
+    "TargetPage",
+]
 import enum
 import logging
-import os
 import pathlib
 import sqlite3
-from typing import Self, TypedDict
+from typing import Final, NamedTuple, Required, Self, TypedDict
 
 
 class DocumentKind(enum.Enum):
@@ -21,15 +26,28 @@ class Mnemonic(enum.Enum):
     DOWNLOAD_TARGET = 4
 
 
-class Instruction(TypedDict):
+InstAttribute = TypedDict(
+    "InstAttribute",
+    {
+        "tag": Required[str],
+        "id": str,
+        "class": frozenset[str],
+        "text": str,
+        "data-editor": str,
+    },
+    total=False,
+)
+
+
+class Instruction(NamedTuple):
     """Represents an individual instruction for the web scraper."""
 
     step: int
     inst: Mnemonic
-    attrs: dict[str, str]
+    attrs: InstAttribute
 
 
-class TargetPage(TypedDict):
+class TargetPage(NamedTuple):
     """Represents a link to a webpage that needs to be parsed."""
 
     idx: int
@@ -47,18 +65,11 @@ class InstructionDatabase:
         or the `SCRAPER_DB_PATH` environment variable if `db_loc`
         is empty or `None`, then converts it into a `Path`."""
         if not db_loc:
-            db_env_path = os.getenv("SCRAPER_DB_PATH")
-            if not db_env_path:
-                logger.warning("No path was provided, using current directory")
-                db_loc = "."
-            else:
-                db_loc = db_env_path
-
-        # If the provided path doesn't exist, this is likely a mistake,
-        # so the OSError exception is intentionally propagated.
-        actual_path = pathlib.Path(db_loc).resolve(True)
+            logger.warning("No path was provided, using current directory")
+            db_loc = "."
+        actual_path = pathlib.Path(db_loc).resolve()
         # Make sure that the path ends in a filename.
-        if not actual_path.name:
+        if not (actual_path.is_file() or actual_path.suffix):
             logger.warning('File name missing, assuming it is "instr_db.sqlite3"')
             actual_path /= "instr_db.sqlite3"
         return actual_path
@@ -72,9 +83,9 @@ class InstructionDatabase:
                 "db_loc must be a path to the location of the instructions database."
             )
 
-        self._con = sqlite3.connect(f"{db_loc.as_uri()}?mode=ro", uri=True)
+        self._con: Final = sqlite3.connect(f"{db_loc.as_uri()}?mode=ro", uri=True)
         self._con.row_factory = sqlite3.Row
-        self._cur = self._con.cursor()
+        self._cur: Final = self._con.cursor()
         # This might need to be changed later
         self._cur.arraysize = 20
 
@@ -85,7 +96,7 @@ class InstructionDatabase:
     def bootstrap(cls, db_loc: str | None) -> Self:
         """Creates a new database using the SQL scripts from the src/sql
         directory."""
-        db_path = cls._convert_to_path(db_loc)
+        db_path: Final = cls._convert_to_path(db_loc)
         # Should paths to bootstrap files be configurable?
         with sqlite3.connect(db_path) as con:
             cur = con.cursor()
@@ -107,13 +118,31 @@ class InstructionDatabase:
         # so there's no way to guarantee type safety here.
         self._cur.execute("select * from document order by idx")
         return [
-            {"idx": row["idx"], "link": row["link"], "kind": DocumentKind(row["kind"])}
+            TargetPage(idx=row["idx"], link=row["link"], kind=DocumentKind(row["kind"]))
             for row in self._cur
         ]
 
+    @staticmethod
+    def _conv_attribute(kind: str, val: str, attrs: InstAttribute) -> None:
+        """Since an attribute is actually a union, this function
+        converts the attribute value into a specific type."""
+        # mypy complains otherwise
+        if kind == "tag":
+            attrs["tag"] = val
+        elif kind == "id":
+            attrs["id"] = val
+        elif kind == "class":
+            attrs["class"] = frozenset(val.split())
+        elif kind == "text":
+            attrs["text"] = val
+        elif kind == "data-editor":
+            attrs["data-editor"] = val
+        else:
+            logger.error(f'Encountered unknown attribute "{kind}", skipping it.')
+
     def get_doc_instrs(self, idx: int) -> list[Instruction]:
         """Fetch instructions for a document with this identifier."""
-        res: list[Instruction] = []
+        res: Final[list[Instruction]] = []
         last_step = 0
         self._cur.execute(
             "select doc_inst.step, doc_inst.inst, inst_attr.kind,"
@@ -127,12 +156,11 @@ class InstructionDatabase:
             if row["step"] != last_step:
                 last_step = row["step"]
                 res.append(
-                    {
-                        "step": last_step,
-                        "inst": Mnemonic(row["inst"]),
-                        "attrs": {row["kind"]: row["val"]},
-                    }
+                    Instruction(
+                        step=last_step,
+                        inst=Mnemonic(row["inst"]),
+                        attrs={"tag": ""},
+                    )
                 )
-            else:
-                res[-1]["attrs"][row["kind"]] = row["val"]
+            self._conv_attribute(row["kind"], row["val"], res[-1].attrs)
         return res
