@@ -1,11 +1,17 @@
 """Functions for interacting with the instructions database."""
 
-__all__ = ["DocumentKind", "Instruction", "InstructionDatabase", "Mnemonic", "TargetPage"]
+__all__ = [
+    "DocumentKind",
+    "Instruction",
+    "InstructionDatabase",
+    "Mnemonic",
+    "TargetPage",
+]
 import enum
 import logging
 import pathlib
 import sqlite3
-from typing import Final, ReadOnly, Self, TypedDict
+from typing import Final, NamedTuple, Required, Self, TypedDict
 
 
 class DocumentKind(enum.Enum):
@@ -20,20 +26,33 @@ class Mnemonic(enum.Enum):
     DOWNLOAD_TARGET = 4
 
 
-class Instruction(TypedDict):
+InstAttribute = TypedDict(
+    "InstAttribute",
+    {
+        "tag": Required[str],
+        "id": str,
+        "class": frozenset[str],
+        "text": str,
+        "data-editor": str,
+    },
+    total=False,
+)
+
+
+class Instruction(NamedTuple):
     """Represents an individual instruction for the web scraper."""
 
-    step: ReadOnly[int]
-    inst: ReadOnly[Mnemonic]
-    attrs: ReadOnly[dict[str, str | frozenset[str]]]
+    step: int
+    inst: Mnemonic
+    attrs: InstAttribute
 
 
-class TargetPage(TypedDict):
+class TargetPage(NamedTuple):
     """Represents a link to a webpage that needs to be parsed."""
 
-    idx: ReadOnly[int]
-    link: ReadOnly[str]
-    kind: ReadOnly[DocumentKind]
+    idx: int
+    link: str
+    kind: DocumentKind
 
 
 logger = logging.getLogger(__name__)
@@ -99,18 +118,27 @@ class InstructionDatabase:
         # so there's no way to guarantee type safety here.
         self._cur.execute("select * from document order by idx")
         return [
-            {"idx": row["idx"], "link": row["link"], "kind": DocumentKind(row["kind"])}
+            TargetPage(idx=row["idx"], link=row["link"], kind=DocumentKind(row["kind"]))
             for row in self._cur
         ]
 
     @staticmethod
-    def _conv_attribute(kind: str, val: str) -> str | frozenset[str]:
+    def _conv_attribute(kind: str, val: str, attrs: InstAttribute) -> None:
         """Since an attribute is actually a union, this function
         converts the attribute value into a specific type."""
-        if kind == "class":
-            return frozenset(val.split())
+        # mypy complains otherwise
+        if kind == "tag":
+            attrs["tag"] = val
+        elif kind == "id":
+            attrs["id"] = val
+        elif kind == "class":
+            attrs["class"] = frozenset(val.split())
+        elif kind == "text":
+            attrs["text"] = val
+        elif kind == "data-editor":
+            attrs["data-editor"] = val
         else:
-            return val
+            logger.error(f'Encountered unknown attribute "{kind}", skipping it.')
 
     def get_doc_instrs(self, idx: int) -> list[Instruction]:
         """Fetch instructions for a document with this identifier."""
@@ -128,12 +156,11 @@ class InstructionDatabase:
             if row["step"] != last_step:
                 last_step = row["step"]
                 res.append(
-                    {
-                        "step": last_step,
-                        "inst": Mnemonic(row["inst"]),
-                        "attrs": {row["kind"]: self._conv_attribute(row["kind"], row["val"])},
-                    }
+                    Instruction(
+                        step=last_step,
+                        inst=Mnemonic(row["inst"]),
+                        attrs={"tag": ""},
+                    )
                 )
-            else:
-                res[-1]["attrs"][row["kind"]] = self._conv_attribute(row["kind"], row["val"])
+            self._conv_attribute(row["kind"], row["val"], res[-1].attrs)
         return res
