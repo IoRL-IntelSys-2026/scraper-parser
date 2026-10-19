@@ -1,6 +1,6 @@
 """Functions for interacting with the instructions database."""
 
-__all__ = ["DocumentKind", "InstructionDatabase", "Mnemonic", "TargetPage"]
+__all__ = ["DocumentKind", "Instruction", "InstructionDatabase", "Mnemonic", "TargetPage"]
 import enum
 import logging
 import pathlib
