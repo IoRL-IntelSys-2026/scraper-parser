@@ -1,13 +1,22 @@
 pragma journal_mode=WAL;
 pragma foreign_keys=ON;
 
--- Links to pages where the document can be found.
+-- Strict topic table lookup definitions
+create table if not exists topic (
+  num integer not null unique primary key
+    on conflict rollback check (num > 0)
+) strict;
+
+-- Links to pages where the document can be found (including topic reference)
 create table if not exists doc_link (
   link text not null unique primary key
     on conflict rollback check (
       link like 'https://%/'
       or link like 'https://%.html'
-    )
+    ),
+  topic integer not null references topic (num)
+    on update cascade
+    on delete restrict
 ) strict, without rowid;
 
 /*
