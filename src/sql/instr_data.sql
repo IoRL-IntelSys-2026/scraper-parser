@@ -14,14 +14,14 @@ insert into doc_type (kind) values
 -- Links that lead to the required document with broad topics attached.
 insert into doc_link (link, topic) values
   ('https://admission.rudn.ru/undergraduate/', 3), -- поступление бакалавриат/специалитет
-  ('https://admission.rudn.ru/master/', 3),        -- поступление магситратура
-  ('https://admission.rudn.ru/postgraduate/', 3),   -- поступление аспирантура
-  ('https://admission.rudn.ru/internship/', 3),     -- поступление ординатура
+  ('https://admission.rudn.ru/master/', 3), -- поступление магситратура
+  ('https://admission.rudn.ru/postgraduate/', 3), -- поступление аспирантура
+  ('https://admission.rudn.ru/internship/', 3), -- поступление ординатура
   ('https://admission.rudn.ru/undergraduate/timing/', 3), -- сроки приема бакалавриат/специалитет
-  ('https://admission.rudn.ru/master/timing/', 3),        -- сроки приема магистратура
-  ('https://admission.rudn.ru/postgraduate/timing/', 3),   -- сроки приема аспирантура
-  ('https://admission.rudn.ru/internship/timing/', 3),     -- сроки приема ординатура
-  ('https://www.rudn.ru/science/dad/doctorantura/', 3),    -- докторантура
+  ('https://admission.rudn.ru/master/timing/', 3), -- сроки приема магистратура
+  ('https://admission.rudn.ru/postgraduate/timing/', 3), -- сроки приема аспирантура
+  ('https://admission.rudn.ru/internship/timing/', 3), -- сроки приема ординатура
+  ('https://www.rudn.ru/science/dad/doctorantura/', 3), -- докторантура
   /*
    * сведения о трудоустройстве выпускников в виде численности
    * трудоустроенных выпускников прошлого учебного года
@@ -111,8 +111,12 @@ insert into doc_inst (doc, step, inst) values
   (11, 1, 2),
   (12, 1, 2),
   (13, 1, 2),
+  /*
+   * Requires two steps since the required elements don't have
+   * a common ancestor.
+   */
   (14, 1, 2),
-  (14, 2, 2); -- в один шаг не выйдет, если не грузить всю страницу
+  (14, 2, 2);
 
 insert into inst_attr (doc, step, kind, val) values
   (1, 1, 'tag', 'a'),

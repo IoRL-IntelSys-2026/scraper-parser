@@ -1,13 +1,13 @@
 pragma journal_mode=WAL;
 pragma foreign_keys=ON;
 
--- 1. Strict topic table lookup definitions
+-- Strict topic table lookup definitions
 create table if not exists topic (
   num integer not null unique primary key
     on conflict rollback check (num > 0)
 ) strict;
 
--- 2. Links to pages where the document can be found (including topic reference)
+-- Links to pages where the document can be found (including topic reference)
 create table if not exists doc_link (
   link text not null unique primary key
     on conflict rollback check (
@@ -86,4 +86,3 @@ create table if not exists inst_attr (
 
 vacuum;
 pragma optimize;
-
