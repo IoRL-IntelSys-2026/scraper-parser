@@ -50,4 +50,4 @@ def test_download_one_page(tmp_path: Path) -> None:
         for file in files
     ), "Скаченные файлы пустые."
 
-    print(f"Successfully tested: {page.link}")
+    print(f"Успешный тест: {page.link}")
