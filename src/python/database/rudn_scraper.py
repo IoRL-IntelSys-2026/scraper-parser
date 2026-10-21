@@ -10,18 +10,23 @@ from urllib.request import urlopen
 
 import certifi
 
-# да я использую edge, я злой
+# долой edge, слава chrome
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.edge.options import Options
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.remote.webdriver import WebDriver
 
-from .instr_db import InstructionDatabase, Mnemonic, TargetPage
+# доп проверка для универсальности кода (привет pycharm)
+try:
+    from .instr_db import InstructionDatabase, Mnemonic, TargetPage
+except ImportError as error:
+    if error.name != __package__:
+        raise
+    from instr_db import InstructionDatabase, Mnemonic, TargetPage
 
 logger = logging.getLogger(__name__)
 
 
-# оформлено в виде функции, по просьбе asdftowel
 def path_chooser(
     db_path: Path | None = None,  # локация для датабазы
     downloads: Path | None = None,  # локация для загрузок
@@ -53,14 +58,13 @@ def path_chooser(
 
 
 # я ОЧЕНЬ хотел назвать функцию "the_downloaderrrrrr" но в рамках чистого кода делать так не буду
-# оформлено в виде функции, по просьбе asdftowel
 def the_downloader(
     db: InstructionDatabase, download_dir: Path, options: Options
 ) -> None:
     driver = None
 
     try:
-        driver = webdriver.Edge(options=options)
+        driver = webdriver.Chrome(options=options)
 
         for page in db.get_pages():
             instructions = db.get_doc_instrs(page.idx)
@@ -129,7 +133,7 @@ def process_page(
                 ) as sock,
                 filepath.open("wb") as f,
             ):
-                sock.readinto(f.raw)
+                f.write(sock.read()) # readinto() ожидает буфер, доступный для записи, однако f.raw является файлом, а не буфером, который требуется этому методу
 
             logger.info(f"Скачано: {filename}")
 
@@ -182,7 +186,8 @@ def process_page(
 if __name__ == "__main__":
     db, downloads = path_chooser()
     options = Options()
-    # это заставляет edge не быть проблемным и нормально скачивать файлы
+
+    # chrome скачивает нормально файлы
     options.add_experimental_option(
         "prefs",
         {
