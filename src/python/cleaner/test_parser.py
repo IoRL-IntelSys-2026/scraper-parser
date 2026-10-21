@@ -2,7 +2,7 @@ import re
 import tempfile
 from pathlib import Path
 
-from parser import clean_html_directory
+from .parser import clean_html_directory
 
 
 def _normalize_whitespace(text: str) -> str:
