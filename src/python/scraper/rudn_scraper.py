@@ -9,14 +9,13 @@ from urllib.parse import unquote, urljoin, urlparse
 from urllib.request import urlopen
 
 import certifi
+from database.instr_db import InstructionDatabase, Mnemonic, TargetPage
 
 # да я использую edge, я злой
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.edge.options import Options
 from selenium.webdriver.remote.webdriver import WebDriver
-
-from .instr_db import InstructionDatabase, Mnemonic, TargetPage
 
 logger = logging.getLogger(__name__)
 
