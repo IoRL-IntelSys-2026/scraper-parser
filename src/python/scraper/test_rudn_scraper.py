@@ -3,11 +3,11 @@
 import tempfile
 from pathlib import Path
 
+from database.instr_db import Mnemonic
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
 from scraper.rudn_scraper import path_chooser, process_page
-from database.instr_db import Mnemonic
 
 
 def test_download_one_page() -> None:
@@ -27,9 +27,7 @@ def test_download_one_page() -> None:
             None,
         )
 
-        assert page is not None, (
-            "Не найдена страница с инструкцией для скачивания."
-        )
+        assert page is not None, "Не найдена страница с инструкцией для скачивания."
 
         driver = webdriver.Chrome(options=Options())
 
@@ -42,9 +40,8 @@ def test_download_one_page() -> None:
 
         assert files, f"Файлы не были скачаны из {page.link}"
 
-        assert any(
-            file.is_file() and file.stat().st_size > 0
-            for file in files
-        ), "Скачанные файлы пустые."
+        assert any(file.is_file() and file.stat().st_size > 0 for file in files), (
+            "Скачанные файлы пустые."
+        )
 
         print(f"Успешный тест: {page.link}")

@@ -10,14 +10,14 @@ from urllib.request import urlopen
 
 import certifi
 
-# долой edge, слава chrome
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.remote.webdriver import WebDriver
-
 # доп проверка для универсальности кода (привет pycharm)
 from database.instr_db import InstructionDatabase, Mnemonic, TargetPage
+
+# долой edge, слава chrome
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+from selenium.webdriver.remote.webdriver import WebDriver
 
 logger = logging.getLogger(__name__)
 
@@ -128,7 +128,9 @@ def process_page(
                 ) as sock,
                 filepath.open("wb") as f,
             ):
-                f.write(sock.read()) # readinto() ожидает буфер, доступный для записи, однако f.raw является файлом, а не буфером, который требуется этому методу
+                f.write(
+                    sock.read()
+                )  # readinto() ожидает буфер, доступный для записи, однако f.raw является файлом, а не буфером, который требуется этому методу
 
             logger.info(f"Скачано: {filename}")
 
