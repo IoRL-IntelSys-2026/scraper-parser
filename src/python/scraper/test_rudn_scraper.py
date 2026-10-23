@@ -20,12 +20,12 @@ def test_download_one_page() -> None:
         chromedriver_path = Path(chromedriver).resolve(True) / "chromedriver"
         service: Final = Service(str(chromedriver_path))
         options: Final = Options()
-        # Посмотрим, нужно ли
-        # options.add_option("--headless")
-        # options.add_option("--disable-gpu")
-        # options.add_option("--no-sandbox")
-        # options.add_option("--disable-dev-shm-usage")
-        # options.add_option("--window-size=1920,1200")
+        options.add_option("--headless=new")
+        options.add_option("--disable-gpu")
+        options.add_option("--no-sandbox")
+        options.add_option("--disable-extensions")
+        options.add_option("--disable-dev-shm-usage")
+        options.add_option("--window-size=1920,1200")
         driver = webdriver.Chrome(service=service, options=options)
     else:
         driver = webdriver.Chrome(options=Options())
