@@ -1,16 +1,35 @@
 """Functions for the RUDN scraper."""
 
+import os
 import tempfile
 from pathlib import Path
+from typing import Final
 
 from database.instr_db import Mnemonic
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
 
 from scraper.rudn_scraper import path_chooser, process_page
 
 
 def test_download_one_page() -> None:
+    if (chromedriver := os.getenv("CHROMEWEBDRIVER")) is not None:
+        # I LOVE GITHUB
+        # I LOVE UBUNTU RAHHHHHHH
+        chromedriver_path = Path(chromedriver).resolve(True) / "chromedriver"
+        service: Final = Service(str(chromedriver_path))
+        options: Final = Options()
+        # Посмотрим, нужно ли
+        # options.add_option("--headless")
+        # options.add_option("--disable-gpu")
+        # options.add_option("--no-sandbox")
+        # options.add_option("--disable-dev-shm-usage")
+        # options.add_option("--window-size=1920,1200")
+        driver: Final = webdriver.Chrome(service=service, options=options)
+    else:
+        driver = webdriver.Chrome(options=Options())
+
     with tempfile.TemporaryDirectory() as temp_dir:
         tmp_path = Path(temp_dir)
         db, _ = path_chooser(downloads=tmp_path)
@@ -28,8 +47,6 @@ def test_download_one_page() -> None:
         )
 
         assert page is not None, "Не найдена страница с инструкцией для скачивания."
-
-        driver = webdriver.Chrome(options=Options())
 
         try:
             process_page(driver, db, page, tmp_path)
