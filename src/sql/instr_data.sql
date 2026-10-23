@@ -1,35 +1,42 @@
+-- 1. Insert the pre-defined broad topics requested by the team layout
+insert into topic (num) values
+  (1), -- Общежитие
+  (2), -- Питание
+  (3), -- Приемная комиссия (Placeholder for Admissions)
+  (4), -- Общая информация (Placeholder for General Help)
+  (5); -- Гранты
+
 -- Describes the target document's file type.
 insert into doc_type (kind) values
   (1), -- HTML
   (2); -- PDF
 
--- Links that lead to the required document.
-insert into doc_link (link) values
-  ('https://admission.rudn.ru/undergraduate/'), -- поступление бакалавриат/специалитет
-  ('https://admission.rudn.ru/master/'), -- поступление магситратура
-  ('https://admission.rudn.ru/postgraduate/'), -- поступление аспирантура
-  ('https://admission.rudn.ru/internship/'), -- поступление ординатура
-  ('https://admission.rudn.ru/undergraduate/timing/'), -- сроки приема бакалавриат/специалитет
-  ('https://admission.rudn.ru/master/timing/'), -- сроки приема магистратура
-  ('https://admission.rudn.ru/postgraduate/timing/'), -- сроки приема аспирантура
-  ('https://admission.rudn.ru/internship/timing/'), -- сроки приема ординатура
-  ('https://www.rudn.ru/science/dad/doctorantura/'), -- докторантура
+-- Links that lead to the required document with broad topics attached.
+insert into doc_link (link, topic) values
+  ('https://admission.rudn.ru/undergraduate/', 3), -- поступление бакалавриат/специалитет
+  ('https://admission.rudn.ru/master/', 3), -- поступление магситратура
+  ('https://admission.rudn.ru/postgraduate/', 3), -- поступление аспирантура
+  ('https://admission.rudn.ru/internship/', 3), -- поступление ординатура
+  ('https://admission.rudn.ru/undergraduate/timing/', 3), -- сроки приема бакалавриат/специалитет
+  ('https://admission.rudn.ru/master/timing/', 3), -- сроки приема магистратура
+  ('https://admission.rudn.ru/postgraduate/timing/', 3), -- сроки приема аспирантура
+  ('https://admission.rudn.ru/internship/timing/', 3), -- сроки приема ординатура
+  ('https://www.rudn.ru/science/dad/doctorantura/', 3), -- докторантура
   /*
    * сведения о трудоустройстве выпускников в виде численности
    * трудоустроенных выпускников прошлого учебного года
    */
-  ('https://www.rudn.ru/sveden/education/employment/'),
-  ('https://www.rudn.ru/sveden/catering/'), -- организация питания в образовательной организации
-  ('https://www.rudn.ru/life/accomodation/'), -- проживание
-  ('https://www.rudn.ru/life/multifunctional-center/'), -- мфц
-  ('https://handbook.rudn.ru/help/social.html'), -- социальная карта
-  ('https://handbook.rudn.ru/help/mail.html'), -- корпоративная почта
-  ('https://handbook.rudn.ru/help/id.html'), -- индивидуальный цифровой ключ (RUDN ID)
-  ('https://handbook.rudn.ru/help/passport.html'), -- Паспортно-визовый, миграционный и регистрационный учет
-  ('https://handbook.rudn.ru/help/war.html'), -- Военно-учетный отдел (для студентов из РФ)
-  ('https://handbook.rudn.ru/help/duplicate.html'), -- Справки и дубликаты документов
-  ('https://handbook.rudn.ru/help/campus.html'); -- оформление карты
-  
+  ('https://www.rudn.ru/sveden/education/employment/', 4),
+  ('https://www.rudn.ru/sveden/catering/', 2), -- организация питания в образовательной организации
+  ('https://www.rudn.ru/life/accomodation/', 1), -- проживание
+  ('https://www.rudn.ru/life/multifunctional-center/', 4), -- мфц
+  ('https://handbook.rudn.ru/help/social.html', 4), -- социальная карта
+  ('https://handbook.rudn.ru/help/mail.html', 4), -- корпоративная почта
+  ('https://handbook.rudn.ru/help/id.html', 4), -- индивидуальный цифровой ключ (RUDN ID)
+  ('https://handbook.rudn.ru/help/passport.html', 4), -- Паспортно-визовый, миграционный и регистрационный учет
+  ('https://handbook.rudn.ru/help/war.html', 4), -- Военно-учетный отдел (для студентов из РФ)
+  ('https://handbook.rudn.ru/help/duplicate.html', 4), -- Справки и дубликаты документов
+  ('https://handbook.rudn.ru/help/campus.html', 4); -- оформление карты
   
 insert into document (idx, link, kind) values
   (1, 'https://admission.rudn.ru/undergraduate/timing/', 2),
@@ -52,7 +59,6 @@ insert into document (idx, link, kind) values
   (18, 'https://handbook.rudn.ru/help/war.html', 1),
   (19, 'https://handbook.rudn.ru/help/duplicate.html', 1),
   (20, 'https://handbook.rudn.ru/help/campus.html', 1);
-
 
 /*
  * Instruction descriptions:
@@ -105,9 +111,12 @@ insert into doc_inst (doc, step, inst) values
   (11, 1, 2),
   (12, 1, 2),
   (13, 1, 2),
+  /*
+   * Requires two steps since the required elements don't have
+   * a common ancestor.
+   */
   (14, 1, 2),
-  (14, 2, 2); -- в один шаг не выйдет, если не грузить всю страницу
-
+  (14, 2, 2);
 
 insert into inst_attr (doc, step, kind, val) values
   (1, 1, 'tag', 'a'),
