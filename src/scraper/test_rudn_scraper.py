@@ -1,4 +1,3 @@
-
 """Functions for the RUDN scraper."""
 
 import tempfile

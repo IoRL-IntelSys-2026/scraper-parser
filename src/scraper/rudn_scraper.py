@@ -18,11 +18,11 @@ from selenium.webdriver.remote.webdriver import WebDriver
 
 # доп проверка для универсальности кода (привет pycharm)
 try:
-    from .instr_db import InstructionDatabase, Mnemonic, TargetPage
+    from python.database.instr_db import (InstructionDatabase, Mnemonic, TargetPage,)
 except ImportError as error:
-    if error.name != __package__:
+    if error.name != "python":
         raise
-    from instr_db import InstructionDatabase, Mnemonic, TargetPage
+    from database.instr_db import (InstructionDatabase, Mnemonic, TargetPage,)
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +34,7 @@ def path_chooser(
 
     # стандартная локация для датабазы (в папке sql)
     if db_path is None:
-        db_path = Path(__file__).parents[2] / "sql/instr_db.sqlite3"
+        db_path = Path(__file__).resolve().parents[1] / "sql" / "instr_db.sqlite3"
         logger.warning(f"Путь до БД не указан, используется {db_path}")
 
     # дефолтное название для файла
