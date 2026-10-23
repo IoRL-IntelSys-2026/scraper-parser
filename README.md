@@ -21,9 +21,7 @@ Right now it's split into the following parts:
 What still needs to be done:
  - A command line interface to control all of
    these parts;
- - A database for monitoring scraping results;
- - A pass to convert fetched documents into a
-   different format.
+ - A database for monitoring scraping results.
 
 ## How to run tests
 This project uses Pytest for unit testing.
