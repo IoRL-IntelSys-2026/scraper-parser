@@ -1,3 +1,4 @@
+__all__ = ["clean_html_directory"]
 import logging
 import re
 from pathlib import Path

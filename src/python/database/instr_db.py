@@ -11,7 +11,7 @@ import enum
 import logging
 import pathlib
 import sqlite3
-from typing import Final, NamedTuple, Required, Self, TypedDict
+from typing import Final, NamedTuple, ReadOnly, Self, TypedDict, cast, get_type_hints
 
 
 class DocumentKind(enum.Enum):
@@ -29,11 +29,11 @@ class Mnemonic(enum.Enum):
 InstAttribute = TypedDict(
     "InstAttribute",
     {
-        "tag": Required[str],
-        "id": str,
-        "class": frozenset[str],
-        "text": str,
-        "data-editor": str,
+        "tag": ReadOnly[str],
+        "id": ReadOnly[str],
+        "class": ReadOnly[frozenset[str]],
+        "text": ReadOnly[str],
+        "data-editor": ReadOnly[str],
     },
     total=False,
 )
@@ -59,6 +59,12 @@ logger = logging.getLogger(__name__)
 
 
 class InstructionDatabase:
+    """Abstraction over the web scraper instructions database.
+    Manages the SQLite connection."""
+
+    # Use introspection to get column names without copying code
+    ATTR_NAMES: Final = frozenset(get_type_hints(InstAttribute).keys())
+
     @staticmethod
     def _convert_to_path(db_loc: str | None) -> pathlib.Path:
         """Validates the path provided as the `db_loc` argument
@@ -122,28 +128,10 @@ class InstructionDatabase:
             for row in self._cur
         ]
 
-    @staticmethod
-    def _conv_attribute(kind: str, val: str, attrs: InstAttribute) -> None:
-        """Since an attribute is actually a union, this function
-        converts the attribute value into a specific type."""
-        # mypy complains otherwise
-        if kind == "tag":
-            attrs["tag"] = val
-        elif kind == "id":
-            attrs["id"] = val
-        elif kind == "class":
-            attrs["class"] = frozenset(val.split())
-        elif kind == "text":
-            attrs["text"] = val
-        elif kind == "data-editor":
-            attrs["data-editor"] = val
-        else:
-            logger.error(f'Encountered unknown attribute "{kind}", skipping it.')
-
     def get_doc_instrs(self, idx: int) -> list[Instruction]:
         """Fetch instructions for a document with this identifier."""
         res: Final[list[Instruction]] = []
-        last_step = 0
+        attrs: Final[dict[str, str]] = {}
         self._cur.execute(
             "select doc_inst.step, doc_inst.inst, inst_attr.kind,"
             " inst_attr.val from doc_inst"
@@ -152,15 +140,56 @@ class InstructionDatabase:
             " where doc_inst.doc = ? order by doc_inst.step",
             (idx,),
         )
+        row = self._cur.fetchone()
+        if row is None:
+            return res
+        attrs[row["kind"]] = row["val"]
+        last_step: int = row["step"]
+        last_inst = Mnemonic(row["inst"])
         for row in self._cur:
-            if row["step"] != last_step:
-                last_step = row["step"]
+            step: int = row["step"]
+            inst = Mnemonic(row["inst"])
+            kind: str = row["kind"]
+            val: str = row["val"]
+
+            if last_step != step:
                 res.append(
                     Instruction(
                         step=last_step,
-                        inst=Mnemonic(row["inst"]),
-                        attrs={"tag": ""},
+                        inst=last_inst,
+                        attrs=cast(
+                            InstAttribute,
+                            {
+                                k: frozenset(attrs[k].split())
+                                if k == "class"
+                                else attrs[k]
+                                for k in self.ATTR_NAMES
+                                if k in attrs
+                            },
+                        ),
                     )
                 )
-            self._conv_attribute(row["kind"], row["val"], res[-1].attrs)
+                attrs.clear()
+
+            if kind in self.ATTR_NAMES:
+                attrs[kind] = val
+            else:
+                logger.warning(f"Unknown attribute {kind}, skipping it.")
+
+            last_step = step
+            last_inst = inst
+        res.append(
+            Instruction(
+                step=last_step,
+                inst=last_inst,
+                attrs=cast(
+                    InstAttribute,
+                    {
+                        k: frozenset(attrs[k].split()) if k == "class" else attrs[k]
+                        for k in self.ATTR_NAMES
+                        if k in attrs
+                    },
+                ),
+            )
+        )
         return res
