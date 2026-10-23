@@ -2,3 +2,4 @@
 unnecessary elements removed."""
 
 __all__ = ["parser"]
+from cleaner import parser

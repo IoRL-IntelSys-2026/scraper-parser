@@ -29,7 +29,7 @@ def path_chooser(
 
     # стандартная локация для датабазы (в папке sql)
     if db_path is None:
-        db_path = Path(__file__).resolve().parents[1] / "sql" / "instr_db.sqlite3"
+        db_path = Path(__file__).resolve().parents[2] / "sql" / "instr_db.sqlite3"
         logger.warning(f"Путь до БД не указан, используется {db_path}")
 
     # дефолтное название для файла

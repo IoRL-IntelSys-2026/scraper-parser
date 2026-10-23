@@ -6,12 +6,8 @@ from pathlib import Path
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
-try:
-    from .rudn_scraper import path_chooser, process_page, Mnemonic
-except ImportError as error:
-    if error.name != __package__:
-        raise
-    from rudn_scraper import path_chooser, process_page, Mnemonic
+from scraper.rudn_scraper import path_chooser, process_page
+from database.instr_db import Mnemonic
 
 
 def test_download_one_page() -> None:
