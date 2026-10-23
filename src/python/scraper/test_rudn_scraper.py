@@ -26,7 +26,7 @@ def test_download_one_page() -> None:
         # options.add_option("--no-sandbox")
         # options.add_option("--disable-dev-shm-usage")
         # options.add_option("--window-size=1920,1200")
-        driver: Final = webdriver.Chrome(service=service, options=options)
+        driver = webdriver.Chrome(service=service, options=options)
     else:
         driver = webdriver.Chrome(options=Options())
 
