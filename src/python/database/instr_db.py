@@ -142,7 +142,6 @@ class InstructionDatabase:
         )
         row = self._cur.fetchone()
         if row is None:
-            logger.warning(f"No instructions for document #{idx}.")
             return res
         attrs[row["kind"]] = row["val"]
         last_step: int = row["step"]

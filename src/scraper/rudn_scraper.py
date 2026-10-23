@@ -17,12 +17,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.remote.webdriver import WebDriver
 
 # доп проверка для универсальности кода (привет pycharm)
-try:
-    from python.database.instr_db import (InstructionDatabase, Mnemonic, TargetPage,)
-except ImportError as error:
-    if error.name != "python":
-        raise
-    from database.instr_db import (InstructionDatabase, Mnemonic, TargetPage,)
+from database.instr_db import InstructionDatabase, Mnemonic, TargetPage
 
 logger = logging.getLogger(__name__)
 
