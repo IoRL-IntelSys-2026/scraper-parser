@@ -3,8 +3,7 @@ insert into topic (num) values
   (1), -- Общежитие
   (2), -- Питание
   (3), -- Приемная комиссия (Placeholder for Admissions)
-  (4), -- Общая информация (Placeholder for General Help)
-  (5); -- Гранты
+  (4); -- Общая информация (Placeholder for General Help)
 
 -- Describes the target document's file type.
 insert into doc_type (kind) values

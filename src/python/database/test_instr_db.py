@@ -2,7 +2,7 @@
 
 import tempfile
 
-from .instr_db import *
+from database.instr_db import *
 
 
 def test_instrdb_methods() -> None:
@@ -13,6 +13,7 @@ def test_instrdb_methods() -> None:
             idx=1,
             link="https://admission.rudn.ru/undergraduate/timing/",
             kind=DocumentKind.PDF,
+            topic=Topic.ADMISSIONS,
         )
         inst4 = [
             Instruction(

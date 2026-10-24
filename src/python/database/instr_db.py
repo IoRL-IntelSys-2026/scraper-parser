@@ -6,7 +6,9 @@ __all__ = [
     "InstructionDatabase",
     "Mnemonic",
     "TargetPage",
+    "Topic",
 ]
+
 import enum
 import logging
 import pathlib
@@ -24,6 +26,13 @@ class Mnemonic(enum.Enum):
     EXTRACT_SUBTREE = 2
     IF_MATCHES = 3
     DOWNLOAD_TARGET = 4
+
+
+class Topic(enum.Enum):
+    DORMITORY = 1
+    CATERING = 2
+    ADMISSIONS = 3
+    GENERAL_HELP = 4
 
 
 InstAttribute = TypedDict(
@@ -53,6 +62,7 @@ class TargetPage(NamedTuple):
     idx: int
     link: str
     kind: DocumentKind
+    topic: Topic
 
 
 logger = logging.getLogger(__name__)
@@ -122,9 +132,18 @@ class InstructionDatabase:
         """Fetch all pages available for scraping."""
         # MyPy cannot know what the database looks like,
         # so there's no way to guarantee type safety here.
-        self._cur.execute("select * from document order by idx")
+        self._cur.execute(
+            "select document.*, doc_link.topic from document"
+            " join doc_link on doc_link.link = document.link"
+            " order by idx"
+        )
         return [
-            TargetPage(idx=row["idx"], link=row["link"], kind=DocumentKind(row["kind"]))
+            TargetPage(
+                idx=row["idx"],
+                link=row["link"],
+                kind=DocumentKind(row["kind"]),
+                topic=Topic(row["topic"]),
+            )
             for row in self._cur
         ]
 
