@@ -12,9 +12,9 @@ updates:
     versioning-strategy: increase-if-necessary
     groups:
       dev-deps:
-        - dependency-type: "development"
+        dependency-type: "development"
       prod-deps:
-        - dependency-type: "production"
+        dependency-type: "production"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
