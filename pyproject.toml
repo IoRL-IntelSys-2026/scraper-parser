@@ -24,6 +24,7 @@ classifiers = [
     "Intended Audience :: Developers",
     "Natural Language :: English",
     "Natural Language :: Russian",
+    "Private :: Do Not Upload", # until it's ready
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.14",
     "Programming Language :: Python :: 3.15",
