@@ -156,7 +156,9 @@ def process_page(
         elif action is Mnemonic.EXTRACT_SUBTREE:
             tag = attrs.get("tag", "*")
             # бог знает почему, но у меня вылезла ошибка при импорте html на wifi рудн, поэтому делаем пока так
-            from selenium.common.exceptions import StaleElementReferenceException
+            from selenium.common.exceptions import (
+                StaleElementReferenceException,
+            )
 
             for attempt in range(2):
                 try:
