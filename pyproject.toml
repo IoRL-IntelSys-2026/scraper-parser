@@ -1,0 +1,64 @@
+[build-system]
+requires = ["setuptools==84.2.1"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "scraper-parser"
+version = "1.0.0"
+description = "A Python project for web parsing"
+readme = "README.md"
+requires-python = ">=3.14"
+license = "GPL-3.0-or-later"
+keywords = ["html", "parsing", "pdf", "web-scraper"]
+
+authors = [
+    { name = "asdftowel", email = "1132220518@rudn.ru" },
+    { name = "wolfforever5", email = "1032262069@rudn.ru" },
+    { name = "Yeabseragetahun", email = "1032265919@rudn.ru" },
+    { name = "daria1407", email = "1132262145@rudn.ru" },
+]
+
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Web Environment",
+    "Intended Audience :: Developers",
+    "Natural Language :: English",
+    "Natural Language :: Russian",
+    "Private :: Do Not Upload", # until it's ready
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
+    "Topic :: Internet :: WWW/HTTP :: Indexing/Search",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Text Processing :: Markup :: HTML",
+    "Typing :: Typed",
+]
+
+dependencies = [
+    "beautifulsoup4==4.15.0",
+    "selenium==4.51.0",
+]
+
+[project.urls]
+Issues = "https://github.com/IoRL-IntelSys-2026/scraper-parser/issues"
+Repository = "https://github.com/IoRL-IntelSys-2026/scraper-parser.git"
+
+[tool.mypy]
+strict = true
+
+[tool.ruff]
+line-length = 80
+output-format = "github"
+output-prefer-rule-codes = true
+show-fixes = true
+
+[tool.ruff.format]
+docstring-code-format = true
+line-ending = "lf"
+
+[project.optional-dependencies]
+devel = [
+    "pytest==9.1.1",
+    "mypy==2.4.0",
+    "ruff==0.17.1",
+]

@@ -11,7 +11,15 @@ import enum
 import logging
 import pathlib
 import sqlite3
-from typing import Final, NamedTuple, ReadOnly, Self, TypedDict, cast, get_type_hints
+from typing import (
+    Final,
+    NamedTuple,
+    ReadOnly,
+    Self,
+    TypedDict,
+    cast,
+    get_type_hints,
+)
 
 
 class DocumentKind(enum.Enum):
