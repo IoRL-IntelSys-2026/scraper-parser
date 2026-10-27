@@ -26,7 +26,7 @@ jobs:
         pip install -r requirements.txt --only-binary :all: --require-hashes
     - name: Typecheck with mypy
       run: |
-        echo "::add-matcher::mypy.json"
+        echo "::add-matcher::.github/mypy.json"
         python3 -m mypy --strict .
     - name: Lint with ruff
       run: |
