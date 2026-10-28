@@ -1,12 +1,30 @@
 """Functions for interacting with the instructions database."""
 
+# instr_db - object-oriented interface for the instructions database
+# Copyright (C) 2026  The scraper-parser contributors
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 __all__ = [
     "DocumentKind",
     "Instruction",
     "InstructionDatabase",
     "Mnemonic",
     "TargetPage",
+    "Topic",
 ]
+
 import enum
 import logging
 import pathlib
@@ -32,6 +50,13 @@ class Mnemonic(enum.Enum):
     EXTRACT_SUBTREE = 2
     IF_MATCHES = 3
     DOWNLOAD_TARGET = 4
+
+
+class Topic(enum.Enum):
+    DORMITORY = 1
+    CATERING = 2
+    ADMISSIONS = 3
+    GENERAL_HELP = 4
 
 
 InstAttribute = TypedDict(
@@ -61,6 +86,7 @@ class TargetPage(NamedTuple):
     idx: int
     link: str
     kind: DocumentKind
+    topic: Topic
 
 
 logger = logging.getLogger(__name__)
@@ -130,9 +156,18 @@ class InstructionDatabase:
         """Fetch all pages available for scraping."""
         # MyPy cannot know what the database looks like,
         # so there's no way to guarantee type safety here.
-        self._cur.execute("select * from document order by idx")
+        self._cur.execute(
+            "select document.*, doc_link.topic from document"
+            " join doc_link on doc_link.link = document.link"
+            " order by idx"
+        )
         return [
-            TargetPage(idx=row["idx"], link=row["link"], kind=DocumentKind(row["kind"]))
+            TargetPage(
+                idx=row["idx"],
+                link=row["link"],
+                kind=DocumentKind(row["kind"]),
+                topic=Topic(row["topic"]),
+            )
             for row in self._cur
         ]
 

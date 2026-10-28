@@ -1,10 +1,27 @@
+/*
+ * instr_data - Instructions for scraping documents
+ * Copyright (C) 2026  The scraper-parser contributors
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 -- 1. Insert the pre-defined broad topics requested by the team layout
 insert into topic (num) values
   (1), -- Общежитие
   (2), -- Питание
   (3), -- Приемная комиссия (Placeholder for Admissions)
-  (4), -- Общая информация (Placeholder for General Help)
-  (5); -- Гранты
+  (4); -- Общая информация (Placeholder for General Help)
 
 -- Describes the target document's file type.
 insert into doc_type (kind) values
