@@ -1,5 +1,6 @@
 # https://i.pinimg.com/474x/f7/20/20/f72020244e330f7415319513208af87d.jpg
 
+import argparse
 import logging
 import ssl
 from pathlib import Path
@@ -23,8 +24,9 @@ logger = logging.getLogger(__name__)
 
 
 def path_chooser(
-    db_path: Path | None = None,  # локация для датабазы
-    downloads: Path | None = None,  # локация для загрузок
+    db_path: Path | None = None,  # локация для базы данных
+    downloads: Path | None = None,  # папка для загрузок
+    create_db: bool = True,  # создавать базу, если её нет
 ) -> tuple[InstructionDatabase, Path]:
 
     # стандартная локация для датабазы (в папке sql)
@@ -36,8 +38,11 @@ def path_chooser(
     if db_path.is_dir() or not db_path.suffix:
         db_path = db_path / "instr_db.sqlite3"
 
-    # создает датабазу либо открывает существующую
+    # создает базу только по четкому разрешению
     if not db_path.is_file():
+        if not create_db:
+            raise FileNotFoundError(f"База данных не найдена: {db_path}")
+        db_path.parent.mkdir(parents=True, exist_ok=True)
         db = InstructionDatabase.bootstrap(str(db_path))
     else:
         db = InstructionDatabase(db_path)
@@ -182,18 +187,58 @@ def process_page(
                 logger.error(f"Не найден подходящий HTML элемент в {page.link}")
 
 
-if __name__ == "__main__":
-    db, downloads = path_chooser()
+def parse_args() -> argparse.Namespace:
+    """Разбирает аргументы командной строки."""
+    parser = argparse.ArgumentParser(
+        description="Загрузка файлов по инструкциям из базы данных."
+    )
+    parser.add_argument(
+        "--db-path",
+        type=Path,
+        help="Путь к файлу базы данных или папке для него.",
+    )
+    parser.add_argument(
+        "--create-db",
+        choices=("да", "нет"),
+        default="да",
+        help="Создавать базу, если её нет: да или нет (по умолчанию: да).",
+    )
+    parser.add_argument(
+        "--downloads",
+        type=Path,
+        help="Папка для загруженных документов.",
+    )
+    return parser.parse_args()
+
+
+def main() -> None:
+    """Запускает загрузчик с параметрами из командной строки."""
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(module)s.%(funcName)s:%(lineno)d: "
+        "%(levelname)s - %(message)s",
+    )
+    args = parse_args()
+
+    db, downloads = path_chooser(
+        db_path=args.db_path,
+        downloads=args.downloads,
+        create_db=args.create_db == "да",
+    )
     options = Options()
 
     # chrome скачивает нормально файлы
     options.add_experimental_option(
         "prefs",
         {
-            "download.default_directory": str(downloads),
+            "download.default_directory": str(downloads.resolve()),
             "download.prompt_for_download": False,
             "download.directory_upgrade": True,
             "plugins.always_open_pdf_externally": True,
         },
     )
     the_downloader(db, downloads, options)
+
+
+if __name__ == "__main__":
+    main()
