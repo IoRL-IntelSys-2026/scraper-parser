@@ -13,9 +13,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
     - name: Set up Python 3.15
-      uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+      uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
       with:
         python-version: "3.15"
         cache: "pip"
@@ -29,6 +29,7 @@ jobs:
         pip install -r dev-requirements.txt --only-binary :all: --require-hashes
     - name: Typecheck with mypy
       run: |
+        echo "::add-matcher::.github/mypy.json"
         python3 -m mypy --strict .
     - name: Lint with ruff
       run: |
