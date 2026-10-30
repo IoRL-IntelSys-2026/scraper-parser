@@ -14,12 +14,12 @@ The project is divided into the following components:
 - **Database** (`src/python/database`) — stores machine-readable instructions describing how individual webpages should be parsed.
 - **Web scraper** (`src/python/scraper`) — uses Selenium to retrieve webpages and interpret the corresponding parsing instructions.
 - **HTML cleaner** (`src/python/cleaner`) — removes unnecessary information from fetched webpages.
-- **Command-line interface** (`src/python/cli.py`) — serves as the main entry point to run the program.
+- **Command-line interface** (`src/python/cli/cli.py`) — serves as the main entry point to run the program.
 - **SQL scripts** (`src/sql`) — contain the database and initial data.
 
 ## Running the tool
 
-Run `src/python/cli.py` to start the application.
+Run `src/python/cli/cli.py` to start the application.
 
 Make sure the required Python dependencies are installed and that `src/python` is configured as a Sources Root.
 

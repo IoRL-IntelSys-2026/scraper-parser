@@ -5,8 +5,7 @@ import logging
 from pathlib import Path
 
 # все необходимые импорты? F401 будет подавлять ruff
-import cleaner.parser  # noqa: F401
-import database.instr_db  # noqa: F401
+from cleaner.parser import clean_html_directory  # noqa: F401
 import scraper.rudn_scraper
 
 
@@ -67,6 +66,7 @@ def main() -> None:
 
     scraper.rudn_scraper.the_downloader(db, downloads, options)
 
+    clean_html_directory(downloads)
 
 if __name__ == "__main__":
     main()
