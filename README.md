@@ -1,27 +1,27 @@
 # Internal website scraping and parsing tool
 
 > [!IMPORTANT]
-> It is a work in progress. Don't rely on any
-> part having a stable interface.
+> This project is a work in progress. Its interface and internal structure may change without notice.
+>
+> Make sure to mark `src/python` as **Sources Root** in your IDE (e.g. PyCharm).
 
-This command line tool collects webpages that
-have information that might be useful to
-students and converts them into an easy to
-manipulate format.
+This command-line tool collects webpages containing information that may be useful to students and converts them into an easy-to-process format.
 
-Right now it's split into the following parts:
- - A database that holds instructions in a
-   machine-readable format on how to parse
-   every page;
- - A web scraper based on Selenium that
-   interprets the aforementioned instructions;
- - A HTML cleaner that strips out unnecessary
-   information from the fetched pages.
+## Project structure
 
-What still needs to be done:
- - A command line interface to control all of
-   these parts;
- - A database for monitoring scraping results.
+The project is divided into the following components:
+
+- **Database** (`src/python/database`) — stores machine-readable instructions describing how individual webpages should be parsed.
+- **Web scraper** (`src/python/scraper`) — uses Selenium to retrieve webpages and interpret the corresponding parsing instructions.
+- **HTML cleaner** (`src/python/cleaner`) — removes unnecessary information from fetched webpages.
+- **Command-line interface** (`src/python/cli.py`) — serves as the main entry point to run the program.
+- **SQL scripts** (`src/sql`) — contain the database and initial data.
+
+## Running the tool
+
+Run `src/python/cli.py` to start the application.
+
+Make sure the required Python dependencies are installed and that `src/python` is configured as a Sources Root.
 
 ## How to run tests
 This project uses Pytest for unit testing.
