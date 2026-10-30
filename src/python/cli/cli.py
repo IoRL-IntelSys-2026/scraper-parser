@@ -4,9 +4,8 @@ import argparse
 import logging
 from pathlib import Path
 
-# все необходимые импорты? F401 будет подавлять ruff
-from cleaner.parser import clean_html_directory  # noqa: F401
 import scraper.rudn_scraper
+from cleaner.parser import clean_html_directory
 
 
 def parse_args() -> argparse.Namespace:
