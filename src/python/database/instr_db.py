@@ -130,7 +130,8 @@ class InstructionDatabase:
         self._cur.arraysize = 20
 
     def __del__(self) -> None:
-        self._con.close()
+        if hasattr(self, "_con"):
+            self._con.close()
 
     @classmethod
     def bootstrap(cls, db_loc: str | None) -> Self:

@@ -16,7 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-# https://i.pinimg.com/474x/f7/20/20/f72020244e330f7415319513208af87d.jpg
+__all__ = ["Options",
+           "path_chooser",
+           "the_downloader"]
 
 import logging
 import ssl
@@ -41,8 +43,8 @@ logger = logging.getLogger(__name__)
 
 
 def path_chooser(
-    db_path: Path | None = None,  # локация для датабазы
-    downloads: Path | None = None,  # локация для загрузок
+    db_path: Path | None = None,  # локация для базы данных
+    downloads: Path | None = None,  # папка для загрузок
 ) -> tuple[InstructionDatabase, Path]:
 
     # стандартная локация для датабазы (в папке sql)
@@ -54,23 +56,25 @@ def path_chooser(
     if db_path.is_dir() or not db_path.suffix:
         db_path = db_path / "instr_db.sqlite3"
 
-    # создает датабазу либо открывает существующую
-    if not db_path.is_file():
-        db = InstructionDatabase.bootstrap(str(db_path))
-    else:
-        db = InstructionDatabase(db_path)
+    # выбор конструктора определяет, создавать ли новую базу.
+    db_path.parent.mkdir(parents=True, exist_ok=True)
+    db = (
+        InstructionDatabase.bootstrap(str(db_path))
+        # автоматизирует создание датабазы при отсутствии
+        if not db_path.is_file()
+        else InstructionDatabase(db_path)
+    )
 
     # стандартное место для папки загрузок
     if downloads is None:
         downloads = Path(__file__).parent / "downloads"
         logger.warning(f"Папка для загрузок не указана, используется {downloads}")
 
-    downloads.mkdir(exist_ok=True)
+    downloads.mkdir(parents=True, exist_ok=True)
 
     return db, downloads
 
 
-# я ОЧЕНЬ хотел назвать функцию "the_downloaderrrrrr" но в рамках чистого кода делать так не буду
 def the_downloader(
     db: InstructionDatabase, download_dir: Path, options: Options
 ) -> None:
@@ -155,7 +159,7 @@ def process_page(
         # код для HTML
         elif action is Mnemonic.EXTRACT_SUBTREE:
             tag = attrs.get("tag", "*")
-            # бог знает почему, но у меня вылезла ошибка при импорте html на wifi рудн, поэтому делаем пока так
+            # если wifi рудн начнет создавать проблемы - это решит их
             from selenium.common.exceptions import (
                 StaleElementReferenceException,
             )
@@ -200,18 +204,3 @@ def process_page(
                 logger.error(f"Не найден подходящий HTML элемент в {page.link}")
 
 
-if __name__ == "__main__":
-    db, downloads = path_chooser()
-    options = Options()
-
-    # chrome скачивает нормально файлы
-    options.add_experimental_option(
-        "prefs",
-        {
-            "download.default_directory": str(downloads),
-            "download.prompt_for_download": False,
-            "download.directory_upgrade": True,
-            "plugins.always_open_pdf_externally": True,
-        },
-    )
-    the_downloader(db, downloads, options)
