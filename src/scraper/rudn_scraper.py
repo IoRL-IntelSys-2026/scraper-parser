@@ -77,51 +77,52 @@ def create_browser_instance(
     }
     # Это нарушает DRY (и ужасно выглядит), но mypy иначе не понимает
     if browser is BrowserType.CHROME:
-        options = webdriver.ChromeOptions()
-        options.add_experimental_option("prefs", prefs)
+        chrome_options: Final = webdriver.ChromeOptions()
+        chrome_options.add_experimental_option("prefs", prefs)
         for arg in instance_args:
-            options.add_argument(arg)
-        service = webdriver.ChromeService(driver_path)
-        driver = webdriver.Chrome(service=service, options=options)
+            chrome_options.add_argument(arg)
+        chrome_service: Final = webdriver.ChromeService(driver_path)
+        return webdriver.Chrome(service=chrome_service, options=chrome_options)
     elif browser is BrowserType.EDGE:
-        options = webdriver.EdgeOptions()
-        options.add_experimental_option("prefs", prefs)
+        edge_options: Final = webdriver.EdgeOptions()
+        edge_options.add_experimental_option("prefs", prefs)
         for arg in instance_args:
-            options.add_argument(arg)
-        service = webdriver.EdgeService(driver_path)
-        driver = webdriver.Edge(service=service, options=options)
+            edge_options.add_argument(arg)
+        edge_service: Final = webdriver.EdgeService(driver_path)
+        return webdriver.Edge(service=edge_service, options=edge_options)
     elif browser is BrowserType.FIREFOX:
-        options = webdriver.FirefoxOptions()
+        firefox_options: Final = webdriver.FirefoxOptions()
         for arg in instance_args:
-            options.add_argument(arg)
-        service = webdriver.FirefoxService(driver_path)
-        driver = webdriver.Firefox(service=service, options=options)
+            firefox_options.add_argument(arg)
+        firefox_service: Final = webdriver.FirefoxService(driver_path)
+        return webdriver.Firefox(
+            service=firefox_service,
+            options=firefox_options
+        )
     elif browser is BrowserType.IE:
-        options = webdriver.IeOptions()
+        ie_options: Final = webdriver.IeOptions()
         for arg in instance_args:
-            options.add_argument(arg)
-        service = webdriver.IeService(driver_path)
-        driver = webdriver.Ie(service=service, options=options)
+            ie_options.add_argument(arg)
+        ie_service: Final = webdriver.IeService(driver_path)
+        return webdriver.Ie(service=ie_service, options=ie_options)
     elif browser is BrowserType.SAFARI:
-        options = webdriver.SafariOptions()
+        safari_options: Final = webdriver.SafariOptions()
         for arg in instance_args:
-            options.add_argument(arg)
-        service = webdriver.SafariService(driver_path)
-        driver = webdriver.Safari(service=service, options=options)
+            safari_options.add_argument(arg)
+        safari_service: Final = webdriver.SafariService(driver_path)
+        return webdriver.Safari(service=safari_service, options=safari_options)
     elif browser is BrowserType.WEBKITGTK:
-        options = webdriver.WebKitGTKOptions()
+        gtk_options: Final = webdriver.WebKitGTKOptions()
         for arg in instance_args:
-            options.add_argument(arg)
-        service = webdriver.WebKitGTKService(driver_path)
-        driver = webdriver.WebKitGTK(service=service, options=options)
+            gtk_options.add_argument(arg)
+        gtk_service: Final = webdriver.WebKitGTKService(driver_path)
+        return webdriver.WebKitGTK(service=gtk_service, options=gtk_options)
     else:
-        options = webdriver.WPEWebKitOptions()
+        wpe_options: Final = webdriver.WPEWebKitOptions()
         for arg in instance_args:
-            options.add_argument(arg)
-        service = webdriver.WPEWebKitService(driver_path)
-        driver = webdriver.WPEWebKit(service=service, options=options)
-
-    return driver
+            wpe_options.add_argument(arg)
+        wpe_service: Final = webdriver.WPEWebKitService(driver_path)
+        return webdriver.WPEWebKit(service=wpe_service, options=wpe_options)
         
 
 def path_chooser(
