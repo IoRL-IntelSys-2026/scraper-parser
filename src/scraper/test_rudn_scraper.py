@@ -16,44 +16,53 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import logging
 import os
 import tempfile
 from pathlib import Path
 from typing import Final
 
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service
-
 from database.instr_db import Mnemonic
-from scraper.rudn_scraper import path_chooser, process_page
+from scraper.rudn_scraper import (
+    BrowserType,
+    create_browser_instance,
+    path_chooser,
+    process_page,
+)
 
+logger = logging.getLogger(__name__)
 
 def test_download_one_page() -> None:
+    options: Final = []
+    chromedriver_path = None
     if (chromedriver := os.getenv("CHROMEWEBDRIVER")) is not None:
         # I LOVE GITHUB
         # I LOVE UBUNTU RAHHHHHHH
         chromedriver_path = Path(chromedriver).resolve(True) / "chromedriver"
-        service: Final = Service(str(chromedriver_path))
-        options: Final = Options()
-        options.add_argument("--headless=new")
-        options.add_argument("--disable-gpu")
-        options.add_argument("--no-sandbox")
-        options.add_argument("--disable-extensions")
-        options.add_argument("--disable-dev-shm-usage")
-        options.add_argument("--window-size=1920,1200")
-        driver = webdriver.Chrome(service=service, options=options)
-    else:
-        driver = webdriver.Chrome(options=Options())
+        options.extend([
+            "--headless=new",
+            "--disable-gpu",
+            "--no-sandbox",
+            "--disable-extensions",
+            "--disable-dev-shm-usage",
+            "--window-size=1920,1200"
+        ])
 
     with tempfile.TemporaryDirectory() as temp_dir:
         tmp_path: Final = Path(temp_dir)
-        db: Final = path_chooser(True, tmp_path, tmp_path)[0]
-
-        page = next(
+        db, downloads = path_chooser(True, tmp_path, tmp_path)
+        driver: Final = create_browser_instance(
+            BrowserType.CHROME,
+            options,
+            str(chromedriver_path),
+            str(downloads)
+        )
+        chunksz: Final = 33554432 # 32 кибибайта
+        pages: Final = db.get_pages()
+        dl_page: Final = next(
             (
                 page
-                for page in db.get_pages()
+                for page in pages
                 if any(
                     instruction.inst is Mnemonic.DOWNLOAD_TARGET
                     for instruction in db.get_doc_instrs(page.idx)
@@ -62,19 +71,32 @@ def test_download_one_page() -> None:
             None,
         )
 
-        assert page is not None, "Не найдена страница с инструкцией для скачивания."
+        et_page: Final = next(
+            (
+                page
+                for page in pages
+                if any(
+                    instruction.inst is Mnemonic.EXTRACT_SUBTREE
+                    for instruction in db.get_doc_instrs(page.idx)
+                )
+            ),
+            None,
+        )
+
+        assert dl_page is not None and et_page is not None, (
+            "Не найдены страницы с необходимыми инструкциями."
+        )
 
         try:
-            process_page(driver, db, page, tmp_path, 33554432)
+            process_page(driver, db, dl_page, tmp_path, chunksz)
+            process_page(driver, db, et_page, tmp_path, chunksz)
         finally:
             driver.quit()
 
-        files = list(tmp_path.iterdir())
+        files: Final = list(tmp_path.iterdir())
 
-        assert files, f"Файлы не были скачаны из {page.link}"
+        assert files, "Файлы не были скачаны."
 
         assert any(file.is_file() and file.stat().st_size > 0 for file in files), (
             "Скачанные файлы пустые."
         )
-
-        print(f"Успешный тест: {page.link}")

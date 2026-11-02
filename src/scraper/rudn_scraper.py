@@ -16,8 +16,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-__all__ = ["path_chooser", "the_downloader"]
+__all__ = [
+    "BrowserType",
+    "create_browser_instance",
+    "path_chooser",
+    "process_page",
+    "the_downloader"
+]
 
+import enum
 import logging
 import ssl
 from pathlib import Path
@@ -32,8 +39,8 @@ import certifi
 # долой edge, слава chrome
 from selenium import webdriver
 from selenium.common.exceptions import StaleElementReferenceException
-from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.service import Service
 from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.remote.webelement import WebElement
 
@@ -47,6 +54,77 @@ from database.instr_db import (
 
 logger: Final = logging.getLogger(__name__)
 
+class BrowserType(enum.StrEnum):
+    CHROME = "chrome"
+    CHROMIUM = "chromium"
+    EDGE = "edge"
+    FIREFOX = "firefox"
+    IE = "ie"
+    SAFARI = "safari"
+    WEBKITGTK = "webkitgtk"
+    WPEWEBKIT = "wpewebkit"
+
+def create_browser_instance(
+        browser: BrowserType,
+        instance_args: list[str],
+        driver_path: str | None = None,
+        downloads: str = '.'
+) -> WebDriver:
+    """Creates a browser instance based on the chosen parameters."""
+    # Так как в параметры нужно вставлять значения, объединить
+    # цепочки `if` не выйдет :(
+    options: Final = (
+        webdriver.ChromeOptions()
+        if browser is BrowserType.CHROME
+        else webdriver.ChromiumOptions()
+        if browser is BrowserType.CHROMIUM
+        else webdriver.EdgeOptions()
+        if browser is BrowserType.EDGE
+        else webdriver.FirefoxOptions()
+        if browser is BrowserType.FIREFOX
+        else webdriver.IeOptions()
+        if browser is BrowserType.IE
+        else webdriver.SafariOptions()
+        if browser is BrowserType.SAFARI
+        else webdriver.WebKitGTKOptions()
+        if browser is BrowserType.WEBKITGTK
+        else webdriver.WPEWebKitOptions()
+    )
+
+    service: Final = Service(driver_path) if driver_path is not None else None
+
+    if browser in (BrowserType.CHROME, BrowserType.CHROMIUM, BrowserType.EDGE):
+        options.add_experimental_option(
+            "prefs",
+            {
+                "download.default_directory": downloads,
+                "download.prompt_for_download": False,
+                "download.directory_upgrade": True,
+                "plugins.always_open_pdf_externally": True,
+            },
+        )
+
+    for arg in instance_args:
+        options.add_argument(arg)
+
+    return (
+        webdriver.Chrome(service=service, options=options)
+        if browser is BrowserType.CHROME
+        else webdriver.Chromium(service=service, options=options)
+        if browser is BrowserType.CHROMIUM
+        else webdriver.Edge(service=service, options=options)
+        if browser is BrowserType.EDGE
+        else webdriver.Firefox(service=service, options=options)
+        if browser is BrowserType.FIREFOX
+        else webdriver.Ie(service=service, options=options)
+        if browser is BrowserType.IE
+        else webdriver.Safari(service=service, options=options)
+        if browser is BrowserType.SAFARI
+        else webdriver.WebKitGTK(service=service, options=options)
+        if browser is BrowserType.WEBKITGTK
+        else webdriver.WPEWebKit(service=service, options=options)
+    )
+        
 
 def path_chooser(
     create_db: bool, # Создавать ли базу данных
@@ -85,21 +163,15 @@ def path_chooser(
 def the_downloader(
     db: InstructionDatabase,
     download_dir: Path,
-    options: Options,
+    driver: WebDriver,
     chunksz: int = 33554432 # 32 мебибайта
 ) -> None:
-    driver = None
-
     try:
-        driver = webdriver.Chrome(options=options)
-
         for page in db.get_pages():
             logger.info(f"Скачивание: {page.link}")
             process_page(driver, db, page, download_dir, chunksz)
-
     finally:
-        if driver is not None:
-            driver.quit()
+        driver.quit()
     logger.info(f"Все скаченные файлы находятся в папке {download_dir}.")
 
 def compare_attrs(attrs: InstAttribute, elem: WebElement) -> bool:

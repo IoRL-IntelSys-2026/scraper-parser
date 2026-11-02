@@ -7,13 +7,17 @@ import logging
 from pathlib import Path
 from typing import Final
 
-from selenium.webdriver.chrome.options import Options
-
-import scraper.rudn_scraper
 from cleaner.parser import clean_html_directory
+from scraper.rudn_scraper import (
+    BrowserType,
+    create_browser_instance,
+    path_chooser,
+    the_downloader,
+)
 
 
-def parse_args() -> argparse.Namespace:
+# Аргумент позволяет программно добавлять аргументы для тестирования
+def parse_args(args: list[str] | None = None) -> argparse.Namespace:
     """Разбирает аргументы командной строки."""
     parser: Final = argparse.ArgumentParser(
         description="Загрузка документов и HTML-страниц по инструкциям из базы данных."
@@ -39,9 +43,31 @@ def parse_args() -> argparse.Namespace:
         "--loglevel",
         choices=("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"),
         default="INFO",
-        help="Минимальный уровень журналирования (по умолчанию: INFO).",
+        help="Минимальный уровень журналирования.",
     )
-    return parser.parse_args()
+    parser.add_argument(
+        "--buffer-size",
+        type=int,
+        default=33554432, # 32 мебибайта
+        help="Размер буфера для загрузки файлов (в байтах)."
+    )
+    parser.add_argument(
+        "--browser",
+        type=BrowserType,
+        help="Браузер, которым нужно управлять."
+    )
+    parser.add_argument(
+        "--driver-path",
+        type=Path,
+        nargs="?",
+        help="Путь до драйвера для выбранного браузера."
+    )
+    parser.add_argument(
+        "browser-opts",
+        nargs="*",
+        help="Аргументы, передаваемые напрямую браузеру."
+    )
+    return parser.parse_args(args)
 
 
 def main() -> None:
@@ -56,23 +82,22 @@ def main() -> None:
         ),
     )
 
-    db, downloads = scraper.rudn_scraper.path_chooser(
+    db, downloads = path_chooser(
         db_path=args.db_path,
         downloads=args.downloads,
         create_db=args.create_db,
     )
 
-    options: Final = Options()
-    options.add_experimental_option(
-        "prefs",
-        {
-            "download.default_directory": str(downloads.resolve()),
-            "download.prompt_for_download": False,
-            "download.directory_upgrade": True,
-            "plugins.always_open_pdf_externally": True,
-        },
+    the_downloader(
+        db,
+        downloads,
+        create_browser_instance(
+            args.browser,
+            args.browser_opts,
+            args.driver_path,
+            str(downloads)
+        ),
+        args.buffer_size
     )
-
-    scraper.rudn_scraper.the_downloader(db, downloads, options)
 
     clean_html_directory(downloads)
