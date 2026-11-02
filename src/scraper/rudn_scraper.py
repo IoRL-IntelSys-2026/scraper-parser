@@ -35,9 +35,15 @@ from selenium.common.exceptions import StaleElementReferenceException
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver
+from selenium.webdriver.remote.webelement import WebElement
 
 # доп проверка для универсальности кода (привет pycharm)
-from database.instr_db import InstructionDatabase, Mnemonic, TargetPage
+from database.instr_db import (
+    InstAttribute,
+    InstructionDatabase,
+    Mnemonic,
+    TargetPage,
+)
 
 logger: Final = logging.getLogger(__name__)
 
@@ -88,14 +94,6 @@ def the_downloader(
         driver = webdriver.Chrome(options=options)
 
         for page in db.get_pages():
-            instructions = db.get_doc_instrs(page.idx)
-
-            if not instructions:
-                logger.warning(
-                    f"Нет инструкций - совершён пропуск: {page.link}"
-                )
-                continue
-
             logger.info(f"Скачивание: {page.link}")
             process_page(driver, db, page, download_dir, chunksz)
 
@@ -104,6 +102,14 @@ def the_downloader(
             driver.quit()
     logger.info(f"Все скаченные файлы находятся в папке {download_dir}.")
 
+def compare_attrs(attrs: InstAttribute, elem: WebElement) -> bool:
+    return all(
+        value <= frozenset((elem.get_attribute(name) or "").split())
+        if name == "class"
+        else elem.get_attribute(name) == value
+        for name, value in attrs.items()
+        if name != "tag"
+    )
 
 def process_page(
     driver: WebDriver,
@@ -112,15 +118,19 @@ def process_page(
     download_dir: Path,
     chunksz: int
 ) -> None:
-    driver.get(page.link)
-
     # инструкции для сайтов
     instructions: Final = db.get_doc_instrs(page.idx)
     ctx: Final = ssl.create_default_context(cafile=certifi.where())
-    nbytes = 0 # сколько байтов прочитано
-    chunk_buffer: Final = bytearray(chunksz) # Для чтения без копий
+    # Для хранения полученного фрагмента
+    chunk_buffer: Final = bytearray(chunksz)
+    # Через `memoryview` можно заполнять буфер без копий
     chunk_view: Final = memoryview(chunk_buffer)
     elements: Final = [] # В конце записывает все одновременно
+    nbytes = 0 # сколько байтов прочитано
+    driver.get(page.link)
+
+    if not instructions:
+        logger.warning(f"Нет инструкций - совершён пропуск: {page.link}")
 
     for instruction in instructions:
         attrs = instruction.attrs
@@ -130,36 +140,39 @@ def process_page(
         if action is Mnemonic.DOWNLOAD_TARGET:
             # найти указанный элемент
             tag = attrs["tag"] or "a"
-            elements = driver.find_elements(By.TAG_NAME, tag)
-
-            for name, value in attrs.items():
-                if name != "tag":
-                    elements = [
-                        element
-                        for element in elements
-                        if element.get_attribute(name) == value
-                    ]
+            targets = [
+                element
+                for element in driver.find_elements(By.TAG_NAME, tag)
+                if compare_attrs(attrs, element)
+            ]
 
             if not elements:
                 logger.error("Ссылка для скачивания не найдена!")
                 continue
+            for (i, target) in enumerate(targets):
+                # получить ссылку сайта
+                url = urljoin(driver.current_url, target.get_attribute("href"))
 
-            # получить ссылку сайта
-            url = urljoin(driver.current_url, elements[0].get_attribute("href"))
+                filename = unquote(
+                    Path(url.split("?")[0]).name
+                )  # unquote делает названия файлов нормальными
+                if not filename:
+                    filename = f"document_{page.idx}_{i}.pdf"
+                filepath = download_dir / filename
 
-            filename = unquote(
-                Path(url.split("?")[0]).name
-            )  # unquote делает названия файлов нормальными
-            if not filename:
-                filename = f"document_{page.idx}.pdf"
-            filepath = download_dir / filename
-
-            # таймер для ожидания - 30 секунд, но можно изменить
-            with urlopen(url, timeout=30, context=ctx) as sock, filepath.open("wb") as f:
-                # Читает и записывает файл кусками размером `chunksz`.
-                while (nbytes := sock.readinto(chunk_view)):
-                    f.write(chunk_view[:nbytes])
-            logger.info(f"Скачано: {filename}")
+                # таймер для ожидания - 30 секунд, но можно изменить
+                with (
+                        urlopen(url, timeout=30, context=ctx) as sock,
+                        filepath.open("wb") as f
+                ):
+                    # Читает и записывает файл кусками размером `chunksz`.
+                    # Можно уменьшить кол-во шагов, читая напрямую в `mmap`,
+                    # но тогда пользователь должен заранее знать максимальный
+                    # размер файла, т.к. расширение проецированного файла -
+                    # долгая операция
+                    while (nbytes := sock.readinto(chunk_view)):
+                        f.write(chunk_view[:nbytes])
+                logger.info(f"Скачано: {filename}")
 
         # код для HTML
         elif action is Mnemonic.EXTRACT_SUBTREE:
@@ -171,21 +184,13 @@ def process_page(
                     elements.extend([
                         element
                         for element in temp_elem
-                        if (
-                            # <= проверяет, присутствуют ли все запрашиваемые классы,
-                            # даже если у элемента есть дополнительные классы
-                            attrs["class"]
-                            <= frozenset(
-                                (element.get_attribute(name) or "").split()
-                            )
-                            if name == "class"
-                            else element.get_attribute(name)
-                            == attrs.get(name, "")
-                        )
+                        if compare_attrs(attrs, element)
                     ])
                     break  # все классно и супер
                 except StaleElementReferenceException as e:
-                    logger.warning(f"Поймана {e}, попытка #{attempt}")
+                    logger.warning(
+                        f"Поймано исключение: {e}, попытка #{attempt}"
+                    )
 
             # скачать страницу как файл html
             if elements:

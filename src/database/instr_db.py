@@ -18,6 +18,7 @@
 
 __all__ = [
     "DocumentKind",
+    "InstAttribute",
     "Instruction",
     "InstructionDatabase",
     "Mnemonic",
