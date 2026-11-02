@@ -102,8 +102,8 @@ class InstructionDatabase:
     @staticmethod
     def _convert_to_path(db_loc: str | None) -> pathlib.Path:
         """Validates the path provided as the `db_loc` argument
-        or the `SCRAPER_DB_PATH` environment variable if `db_loc`
-        is empty or `None`, then converts it into a `Path`."""
+        or the default path if `db_loc` is empty or `None`, then
+        converts it into a `Path`."""
         if not db_loc:
             logger.warning("No path was provided, using current directory")
             db_loc = "."
@@ -142,12 +142,12 @@ class InstructionDatabase:
         with sqlite3.connect(db_path) as con:
             cur = con.cursor()
             cur.executescript(
-                (pathlib.Path(__file__).parent / "../../sql/instr_schema.sql")
+                (pathlib.Path(__file__).parents[1] / "sql" / "instr_schema.sql")
                 .resolve(True)
                 .read_text(encoding="utf-8")
             )
             cur.executescript(
-                (pathlib.Path(__file__).parent / "../../sql/instr_data.sql")
+                (pathlib.Path(__file__).parents[1] / "sql" / "instr_data.sql")
                 .resolve(True)
                 .read_text(encoding="utf-8")
             )

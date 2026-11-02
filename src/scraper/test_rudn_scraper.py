@@ -21,11 +21,11 @@ import tempfile
 from pathlib import Path
 from typing import Final
 
-from database.instr_db import Mnemonic
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 
+from database.instr_db import Mnemonic
 from scraper.rudn_scraper import path_chooser, process_page
 
 
@@ -47,8 +47,8 @@ def test_download_one_page() -> None:
         driver = webdriver.Chrome(options=Options())
 
     with tempfile.TemporaryDirectory() as temp_dir:
-        tmp_path = Path(temp_dir)
-        db, _ = path_chooser(downloads=tmp_path)
+        tmp_path: Final = Path(temp_dir)
+        db: Final = path_chooser(True, tmp_path, tmp_path)[0]
 
         page = next(
             (
@@ -65,7 +65,7 @@ def test_download_one_page() -> None:
         assert page is not None, "Не найдена страница с инструкцией для скачивания."
 
         try:
-            process_page(driver, db, page, tmp_path)
+            process_page(driver, db, page, tmp_path, 33554432)
         finally:
             driver.quit()
 
