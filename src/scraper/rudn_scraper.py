@@ -104,7 +104,7 @@ def the_downloader(
 
 def compare_attrs(attrs: InstAttribute, elem: WebElement) -> bool:
     return all(
-        value <= frozenset((elem.get_attribute(name) or "").split())
+        attrs["class"] <= frozenset((elem.get_attribute(name) or "").split())
         if name == "class"
         else elem.get_attribute(name) == value
         for name, value in attrs.items()
