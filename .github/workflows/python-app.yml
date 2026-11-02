@@ -37,3 +37,12 @@ jobs:
     - name: Test with pytest
       run: |
         pytest
+    - name: Check that the package builds correctly
+      run: |
+        mkdir dist
+        log="$(pip wheel --no-deps -w ./dist . | tail -n 3)"
+        fname="${log% size=*}"
+        fname="${fname##*filename=}"
+        pip install "dist/$fname"
+        # Test that the script exists
+        scraper-parser --help

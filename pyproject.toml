@@ -43,6 +43,9 @@ dependencies = [
 Issues = "https://github.com/IoRL-IntelSys-2026/scraper-parser/issues"
 Repository = "https://github.com/IoRL-IntelSys-2026/scraper-parser.git"
 
+[project.scripts]
+scraper-parser = "cli:main"
+
 [tool.mypy]
 strict = true
 
