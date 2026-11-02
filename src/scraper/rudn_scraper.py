@@ -146,9 +146,10 @@ def process_page(
                 if compare_attrs(attrs, element)
             ]
 
-            if not elements:
-                logger.error("Ссылка для скачивания не найдена!")
+            if not targets:
+                logger.error("Ссылки для скачивания не найдены!")
                 continue
+
             for (i, target) in enumerate(targets):
                 # получить ссылку сайта
                 url = urljoin(driver.current_url, target.get_attribute("href"))
