@@ -57,7 +57,9 @@ def test_clean_html() -> None:
 
         # 3. Verify the script stripped elements and flattened the structure properly
         output_file = tmp_path / "cleaned_example.html"
-        assert output_file.exists(), "The cleaned file output was not generated."
+        assert output_file.exists(), (
+            "The cleaned file output was not generated."
+        )
 
         actual_output = output_file.read_text(encoding="utf-8")
 

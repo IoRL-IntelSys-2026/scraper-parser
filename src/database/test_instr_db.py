@@ -43,7 +43,10 @@ def test_instrdb_methods() -> None:
             Instruction(
                 step=1,
                 inst=Mnemonic.EXTRACT_SUBTREE,
-                attrs={"tag": "section", "class": frozenset({"page-subtitle-help"})},
+                attrs={
+                    "tag": "section",
+                    "class": frozenset({"page-subtitle-help"}),
+                },
             ),
             Instruction(
                 step=2,

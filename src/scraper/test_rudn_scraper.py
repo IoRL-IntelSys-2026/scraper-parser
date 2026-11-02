@@ -32,6 +32,7 @@ from scraper.rudn_scraper import (
 
 logger = logging.getLogger(__name__)
 
+
 def test_download_one_page() -> None:
     options: Final = []
     chromedriver_path = None
@@ -39,25 +40,24 @@ def test_download_one_page() -> None:
         # I LOVE GITHUB
         # I LOVE UBUNTU RAHHHHHHH
         chromedriver_path = Path(chromedriver).resolve(True) / "chromedriver"
-        options.extend([
-            "--headless=new",
-            "--disable-gpu",
-            "--no-sandbox",
-            "--disable-extensions",
-            "--disable-dev-shm-usage",
-            "--window-size=1920,1200"
-        ])
+        options.extend(
+            [
+                "--headless=new",
+                "--disable-gpu",
+                "--no-sandbox",
+                "--disable-extensions",
+                "--disable-dev-shm-usage",
+                "--window-size=1920,1200",
+            ]
+        )
 
     with tempfile.TemporaryDirectory() as temp_dir:
         tmp_path: Final = Path(temp_dir)
         db, downloads = path_chooser(True, tmp_path, tmp_path)
         driver: Final = create_browser_instance(
-            BrowserType.CHROME,
-            options,
-            str(chromedriver_path),
-            str(downloads)
+            BrowserType.CHROME, options, str(chromedriver_path), str(downloads)
         )
-        chunksz: Final = 33554432 # 32 кибибайта
+        chunksz: Final = 33554432  # 32 кибибайта
         pages: Final = db.get_pages()
         dl_page: Final = next(
             (
@@ -97,6 +97,6 @@ def test_download_one_page() -> None:
 
         assert files, "Файлы не были скачаны."
 
-        assert any(file.is_file() and file.stat().st_size > 0 for file in files), (
-            "Скачанные файлы пустые."
-        )
+        assert any(
+            file.is_file() and file.stat().st_size > 0 for file in files
+        ), "Скачанные файлы пустые."
