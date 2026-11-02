@@ -44,3 +44,5 @@ jobs:
         fname="${log% size=*}"
         fname="${fname##*filename=}"
         pip install "dist/$fname"
+        # Test that the script exists
+        scraper-parser --help
