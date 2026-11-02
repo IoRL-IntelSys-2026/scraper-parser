@@ -37,3 +37,7 @@ jobs:
     - name: Test with pytest
       run: |
         pytest
+    - name: Check that the package builds correctly
+      run: |
+        pip wheel --no-deps .
+        pip install dist/*.whl
