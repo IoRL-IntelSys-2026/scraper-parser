@@ -40,7 +40,6 @@ import certifi
 from selenium import webdriver
 from selenium.common.exceptions import StaleElementReferenceException
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.service import Service
 from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.remote.webelement import WebElement
 
@@ -56,7 +55,6 @@ logger: Final = logging.getLogger(__name__)
 
 class BrowserType(enum.StrEnum):
     CHROME = "chrome"
-    CHROMIUM = "chromium"
     EDGE = "edge"
     FIREFOX = "firefox"
     IE = "ie"
@@ -71,59 +69,59 @@ def create_browser_instance(
         downloads: str = '.'
 ) -> WebDriver:
     """Creates a browser instance based on the chosen parameters."""
-    # Так как в параметры нужно вставлять значения, объединить
-    # цепочки `if` не выйдет :(
-    options: Final = (
-        webdriver.ChromeOptions()
-        if browser is BrowserType.CHROME
-        else webdriver.ChromiumOptions()
-        if browser is BrowserType.CHROMIUM
-        else webdriver.EdgeOptions()
-        if browser is BrowserType.EDGE
-        else webdriver.FirefoxOptions()
-        if browser is BrowserType.FIREFOX
-        else webdriver.IeOptions()
-        if browser is BrowserType.IE
-        else webdriver.SafariOptions()
-        if browser is BrowserType.SAFARI
-        else webdriver.WebKitGTKOptions()
-        if browser is BrowserType.WEBKITGTK
-        else webdriver.WPEWebKitOptions()
-    )
+    prefs: Final = {
+        "download.default_directory": downloads,
+        "download.prompt_for_download": False,
+        "download.directory_upgrade": True,
+        "plugins.always_open_pdf_externally": True,
+    }
+    # Это нарушает DRY (и ужасно выглядит), но mypy иначе не понимает
+    if browser is BrowserType.CHROME:
+        options = webdriver.ChromeOptions()
+        options.add_experimental_option("prefs", prefs)
+        for arg in instance_args:
+            options.add_argument(arg)
+        service = webdriver.ChromeService(driver_path)
+        driver = webdriver.Chrome(service=service, options=options)
+    elif browser is BrowserType.EDGE:
+        options = webdriver.EdgeOptions()
+        options.add_experimental_option("prefs", prefs)
+        for arg in instance_args:
+            options.add_argument(arg)
+        service = webdriver.EdgeService(driver_path)
+        driver = webdriver.Edge(service=service, options=options)
+    elif browser is BrowserType.FIREFOX:
+        options = webdriver.FirefoxOptions()
+        for arg in instance_args:
+            options.add_argument(arg)
+        service = webdriver.FirefoxService(driver_path)
+        driver = webdriver.Firefox(service=service, options=options)
+    elif browser is BrowserType.IE:
+        options = webdriver.IeOptions()
+        for arg in instance_args:
+            options.add_argument(arg)
+        service = webdriver.IeService(driver_path)
+        driver = webdriver.Ie(service=service, options=options)
+    elif browser is BrowserType.SAFARI:
+        options = webdriver.SafariOptions()
+        for arg in instance_args:
+            options.add_argument(arg)
+        service = webdriver.SafariService(driver_path)
+        driver = webdriver.Safari(service=service, options=options)
+    elif browser is BrowserType.WEBKITGTK:
+        options = webdriver.WebKitGTKOptions()
+        for arg in instance_args:
+            options.add_argument(arg)
+        service = webdriver.WebKitGTKService(driver_path)
+        driver = webdriver.WebKitGTK(service=service, options=options)
+    else:
+        options = webdriver.WPEWebKitOptions()
+        for arg in instance_args:
+            options.add_argument(arg)
+        service = webdriver.WPEWebKitService(driver_path)
+        driver = webdriver.WPEWebKit(service=service, options=options)
 
-    service: Final = Service(driver_path) if driver_path is not None else None
-
-    if browser in (BrowserType.CHROME, BrowserType.CHROMIUM, BrowserType.EDGE):
-        options.add_experimental_option(
-            "prefs",
-            {
-                "download.default_directory": downloads,
-                "download.prompt_for_download": False,
-                "download.directory_upgrade": True,
-                "plugins.always_open_pdf_externally": True,
-            },
-        )
-
-    for arg in instance_args:
-        options.add_argument(arg)
-
-    return (
-        webdriver.Chrome(service=service, options=options)
-        if browser is BrowserType.CHROME
-        else webdriver.Chromium(service=service, options=options)
-        if browser is BrowserType.CHROMIUM
-        else webdriver.Edge(service=service, options=options)
-        if browser is BrowserType.EDGE
-        else webdriver.Firefox(service=service, options=options)
-        if browser is BrowserType.FIREFOX
-        else webdriver.Ie(service=service, options=options)
-        if browser is BrowserType.IE
-        else webdriver.Safari(service=service, options=options)
-        if browser is BrowserType.SAFARI
-        else webdriver.WebKitGTK(service=service, options=options)
-        if browser is BrowserType.WEBKITGTK
-        else webdriver.WPEWebKit(service=service, options=options)
-    )
+    return driver
         
 
 def path_chooser(
