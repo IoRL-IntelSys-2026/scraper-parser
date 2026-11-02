@@ -39,9 +39,8 @@ jobs:
         pytest
     - name: Check that the package builds correctly
       run: |
-        log="$(pip wheel --no-deps . | tail -n 3)"
+        mkdir dist
+        log="$(pip wheel --no-deps -w ./dist . | tail -n 3)"
         fname="${log% size=*}"
         fname="${fname##*filename=}"
-        wheel_dir="${log##*directory: }"
-        wheel_dir=$(echo "$wheel_dir" | head -n 1)
-        pip install "$wheel_dir/$fname"
+        pip install "dist/$fname"
