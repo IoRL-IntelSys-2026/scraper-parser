@@ -42,5 +42,6 @@ jobs:
         log="$(pip wheel --no-deps . | tail -n 3)"
         fname="${log% size=*}"
         fname="${fname##*filename=}"
-        wheel_dir=$("${log##*directory: }" | head -n 1)
+        wheel_dir="${log##*directory: }"
+        wheel_dir=$(echo "$wheel_dir" | head -n 1)
         pip install "$wheel_dir/$fname"
