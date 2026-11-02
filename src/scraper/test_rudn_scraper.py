@@ -57,7 +57,7 @@ def test_download_one_page() -> None:
         driver: Final = create_browser_instance(
             BrowserType.CHROME, options, str(chromedriver_path), str(downloads)
         )
-        chunksz: Final = 33554432  # 32 кибибайта
+        chunksz: Final = 33554432  # 32 мебибайта
         pages: Final = db.get_pages()
         dl_page: Final = next(
             (
