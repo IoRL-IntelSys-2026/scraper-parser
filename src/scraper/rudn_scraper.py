@@ -118,12 +118,14 @@ def create_browser_instance(
             gtk_options.add_argument(arg)
         gtk_service: Final = webdriver.WebKitGTKService(driver_path)
         return webdriver.WebKitGTK(service=gtk_service, options=gtk_options)
-    else:
+    elif browser is BrowserType.WPEWEBKIT:
         wpe_options: Final = webdriver.WPEWebKitOptions()
         for arg in instance_args:
             wpe_options.add_argument(arg)
         wpe_service: Final = webdriver.WPEWebKitService(driver_path)
         return webdriver.WPEWebKit(service=wpe_service, options=wpe_options)
+    else:
+        raise ValueError(f"Не поддерживается вид браузера: {browser}")
 
 
 def path_chooser(
@@ -141,12 +143,12 @@ def path_chooser(
     if db_path.is_dir() or not db_path.suffix:
         db_path = db_path / "instr_db.sqlite3"
 
-    db_path.parent.mkdir(exist_ok=True)
+    db_path.parent.mkdir(parents=True, exist_ok=True)
     # выбор конструктора определяет, создавать ли новую базу.
     # Бросает исключение, если БД должна существовать, а её нет.
     db = (
         InstructionDatabase.bootstrap(str(db_path))
-        if create_db
+        if create_db and not db_path.is_file()
         else InstructionDatabase(db_path)
     )
 
