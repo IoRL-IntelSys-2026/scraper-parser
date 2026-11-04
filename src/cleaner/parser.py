@@ -56,7 +56,9 @@ def clean_html_directory(target_dir: str | Path = ".") -> None:
         soup = BeautifulSoup(html_content, "html.parser")
 
         # 2. Replaced extract() with decompose() as they behave identically here
-        for comment in soup.find_all(string=lambda text: isinstance(text, Comment)):
+        for comment in soup.find_all(
+            string=lambda text: isinstance(text, Comment)
+        ):
             comment.decompose()
 
         # 3. Clean up unwanted layout tags
@@ -72,7 +74,9 @@ def clean_html_directory(target_dir: str | Path = ".") -> None:
                 # mypy cannot narrow the type by itself, so a type
                 # narrowing function is used.
                 children_tags = [
-                    c for c in div.contents if is_pe_subclass(c) and c.name is not None
+                    c
+                    for c in div.contents
+                    if is_pe_subclass(c) and c.name is not None
                 ]
                 if len(children_tags) == 1 and children_tags[0].name == "div":
                     div.unwrap()
