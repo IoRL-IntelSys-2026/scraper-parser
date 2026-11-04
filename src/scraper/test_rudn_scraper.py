@@ -50,7 +50,7 @@ def test_download_one_page() -> None:
             ]
         )
 
-    with tempfile.TemporaryDirectory() as temp_dir:
+    with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as temp_dir:
         tmp_path: Final = Path(temp_dir)
         db, downloads = path_chooser(True, tmp_path, tmp_path)
         driver: Final = create_browser_instance(
