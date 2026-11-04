@@ -31,7 +31,6 @@ def parse_args(args: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--create-db",
         action=argparse.BooleanOptionalAction,
-        default=True, # иначе выходит ошибка ValueError: db_loc must be a path to the location of the instructions database. в PyCharm
         help="Можно ли создать базу данных, если по указанному пути её нет.",
     )
     parser.add_argument(
@@ -53,7 +52,7 @@ def parse_args(args: list[str] | None = None) -> argparse.Namespace:
         help="Размер буфера для загрузки файлов (в байтах).",
     )
     parser.add_argument(
-        "--browser", type=BrowserType, default=BrowserType.CHROME, help="Браузер, которым нужно управлять."
+        "--browser", type=BrowserType, help="Браузер, которым нужно управлять."
     )
     parser.add_argument(
         "--driver-path",
@@ -62,7 +61,7 @@ def parse_args(args: list[str] | None = None) -> argparse.Namespace:
         help="Путь до драйвера для выбранного браузера.",
     )
     parser.add_argument(
-        "browser_opts",
+        "browser-opts",
         nargs="*",
         help="Аргументы, передаваемые напрямую браузеру.",
     )
