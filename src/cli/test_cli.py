@@ -10,14 +10,17 @@ from scraper.rudn_scraper import BrowserType
 
 
 def test_good_args() -> None:
-    args, unknown, _ = parse_args([
-        "--db-path=./nonexistent/path",
-        "--create-db",
-        "--loglevel=WARNING",
-        "--browser=chrome",
-        "--no-create-db",
-        "--headless=new"
-    ], False)
+    args, unknown, _ = parse_args(
+        [
+            "--db-path=./nonexistent/path",
+            "--create-db",
+            "--loglevel=WARNING",
+            "--browser=chrome",
+            "--no-create-db",
+            "--headless=new",
+        ],
+        False,
+    )
     assert unknown == ["--headless=new"]
     assert (
         args.db_path == Path("./nonexistent/path")
@@ -29,14 +32,21 @@ def test_good_args() -> None:
         and args.driver_path is None
     )
 
+
 def test_exhaustive_browser_choice() -> None:
     _, _, parser = parse_args(["--no-create-db", "--browser=edge"], False)
     browser_choices = next(
-        action.choices for action in parser._actions
-        if isinstance(action, Action)
-        and action.option_strings[0] == "--browser"
+        (
+            action.choices
+            for action in parser._actions
+            if isinstance(action, Action)
+            and action.option_strings[0] == "--browser"
+            and isinstance(action.choices, tuple)
+        ),
+        (),
     )
     assert all(browser.value in browser_choices for browser in BrowserType)
+
 
 def test_bad_args() -> None:
     with pytest.raises(ArgumentError):

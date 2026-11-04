@@ -26,9 +26,9 @@ def _check_positive(arg: str) -> int:
         raise argparse.ArgumentTypeError(f"{res} is not a positive integer.")
     return res
 
+
 def parse_args(
-        args: list[str] | None,
-        exit_on_error: bool
+    args: list[str] | None, exit_on_error: bool
 ) -> tuple[argparse.Namespace, list[str], argparse.ArgumentParser]:
     """Разбирает аргументы командной строки."""
     parser: Final = argparse.ArgumentParser(
@@ -37,7 +37,7 @@ def parse_args(
             " Все незнакомые (которых нет в списке ниже) аргументы передаются"
             " драйверу браузера."
         ),
-        exit_on_error=exit_on_error
+        exit_on_error=exit_on_error,
     )
     parser.add_argument(
         "--db-path",
@@ -71,11 +71,17 @@ def parse_args(
     parser.add_argument(
         "--browser",
         choices=(
-            "chrome", "edge", "firefox", "ie", "safari", "webkitgtk", "wpewebkit"
+            "chrome",
+            "edge",
+            "firefox",
+            "ie",
+            "safari",
+            "webkitgtk",
+            "wpewebkit",
         ),
         type=BrowserType,
         required=True,
-        help="Браузер, которым нужно управлять."
+        help="Браузер, которым нужно управлять.",
     )
     parser.add_argument(
         "--driver-path",
