@@ -22,7 +22,7 @@ from typing import Final
 from database.instr_db import *
 
 
-def test_instrdb_methods() -> None:
+def test_get_pages() -> None:
     with tempfile.NamedTemporaryFile(delete=False) as tmp:
         idb: Final = InstructionDatabase.bootstrap(tmp.name)
         pages: Final = idb.get_pages()
@@ -32,6 +32,12 @@ def test_instrdb_methods() -> None:
             kind=DocumentKind.PDF,
             topic=Topic.ADMISSIONS,
         )
+        assert pages[0] == page1
+
+
+def test_get_doc_instrs() -> None:
+    with tempfile.NamedTemporaryFile(delete=False) as tmp:
+        idb: Final = InstructionDatabase.bootstrap(tmp.name)
         inst4: Final = [
             Instruction(
                 step=1,
@@ -54,6 +60,5 @@ def test_instrdb_methods() -> None:
                 attrs={"tag": "section", "class": frozenset({"main"})},
             ),
         ]
-        assert pages[0] == page1
         assert idb.get_doc_instrs(4) == inst4
         assert idb.get_doc_instrs(14) == inst14
