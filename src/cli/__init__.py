@@ -1,6 +1,6 @@
 """Command-line interface for the RUDN scraper."""
 
-__all__ = ["main"]
+__all__ = ["main", "parse_args"]
 
 import argparse
 import logging
@@ -16,11 +16,28 @@ from scraper.rudn_scraper import (
 )
 
 
-# Аргумент позволяет программно добавлять аргументы для тестирования
-def parse_args(args: list[str] | None = None) -> argparse.Namespace:
+def _check_positive(arg: str) -> int:
+    """Tests that an argument is a positive integer."""
+    try:
+        res = int(arg)
+    except ValueError:
+        raise argparse.ArgumentTypeError(f'"{arg}" is not an integer.')
+    if res < 1:
+        raise argparse.ArgumentTypeError(f"{res} is not a positive integer.")
+    return res
+
+def parse_args(
+        args: list[str] | None,
+        exit_on_error: bool
+) -> tuple[argparse.Namespace, list[str], argparse.ArgumentParser]:
     """Разбирает аргументы командной строки."""
     parser: Final = argparse.ArgumentParser(
-        description="Загрузка документов и HTML-страниц по инструкциям из базы данных."
+        description=(
+            "Загрузка документов и HTML-страниц по инструкциям из базы данных."
+            " Все незнакомые (которых нет в списке ниже) аргументы передаются"
+            " драйверу браузера."
+        ),
+        exit_on_error=exit_on_error
     )
     parser.add_argument(
         "--db-path",
@@ -47,12 +64,18 @@ def parse_args(args: list[str] | None = None) -> argparse.Namespace:
     )
     parser.add_argument(
         "--buffer-size",
-        type=int,
+        type=_check_positive,
         default=33554432,  # 32 мебибайта
         help="Размер буфера для загрузки файлов (в байтах).",
     )
     parser.add_argument(
-        "--browser", type=BrowserType, help="Браузер, которым нужно управлять."
+        "--browser",
+        choices=(
+            "chrome", "edge", "firefox", "ie", "safari", "webkitgtk", "wpewebkit"
+        ),
+        type=BrowserType,
+        required=True,
+        help="Браузер, которым нужно управлять."
     )
     parser.add_argument(
         "--driver-path",
@@ -60,17 +83,12 @@ def parse_args(args: list[str] | None = None) -> argparse.Namespace:
         nargs="?",
         help="Путь до драйвера для выбранного браузера.",
     )
-    parser.add_argument(
-        "browser-opts",
-        nargs="*",
-        help="Аргументы, передаваемые напрямую браузеру.",
-    )
-    return parser.parse_args(args)
+    return parser.parse_known_args(args) + (parser,)
 
 
 def main() -> None:
     """Запускает загрузчик с параметрами командной строки."""
-    args: Final = parse_args()
+    args, browser_args, _ = parse_args(None, True)
 
     logging.basicConfig(
         level=args.loglevel,
@@ -90,7 +108,7 @@ def main() -> None:
         db,
         downloads,
         create_browser_instance(
-            args.browser, args.browser_opts, args.driver_path, str(downloads)
+            args.browser, browser_args, args.driver_path, str(downloads)
         ),
         args.buffer_size,
     )
