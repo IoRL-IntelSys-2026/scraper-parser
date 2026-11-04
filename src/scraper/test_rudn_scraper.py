@@ -44,8 +44,7 @@ def test_download_one_page() -> None:
             [
                 "--headless=new",
                 "--disable-gpu",
-                "--no-sandbox",
-                "--disable-extensions",
+                '--js-flags="--jitless"',
                 "--disable-dev-shm-usage",
                 "--window-size=1920,1200",
             ]
