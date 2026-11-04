@@ -54,6 +54,11 @@ from database.instr_db import (
 logger: Final = logging.getLogger(__name__)
 
 class BrowserType(enum.StrEnum):
+    """
+    Поддерживаемые типы браузеров для Selenium WebDriver.
+
+    Значения соответствуют именам браузеров в нижнем регистре.
+    """
     CHROME = "chrome"
     EDGE = "edge"
     FIREFOX = "firefox"
@@ -68,7 +73,41 @@ def create_browser_instance(
         driver_path: str | None = None,
         downloads: str = '.'
 ) -> WebDriver:
-    """Creates a browser instance based on the chosen parameters."""
+    """
+    Создаёт экземпляр веб-драйвера выбранного браузера.
+
+    Для Chromium-подобных браузеров (Chrome, Edge) настраиваются
+    параметры скачивания файлов: каталог загрузок, отключение запроса
+    подтверждения, автоматическое открытие PDF во внешнем просмотрщике.
+    Для остальных браузеров применяются только аргументы из
+    ``instance_args``.
+
+    Parameters
+    ----------
+    browser : BrowserType
+        Тип создаваемого браузера.
+    instance_args : list of str
+        Дополнительные аргументы командной строки, передаваемые
+        драйверу (например, ``["--headless", "--no-sandbox"]``).
+    driver_path : str or None, optional
+        Путь к исполняемому файлу драйвера. Если ``None``, Selenium
+        попытается найти драйвер автоматически. По умолчанию — ``None``.
+    downloads : str, optional
+        Каталог, в который браузер будет сохранять скачанные файлы.
+        Учитывается только для Chrome и Edge. По умолчанию — ``'.'``.
+
+    Returns
+    -------
+    WebDriver
+        Настроенный экземпляр веб-драйвера. Конкретный класс зависит
+        от значения ``browser``.
+
+    Notes
+    -----
+    Значение ``browser``, не совпадающее ни с одним из явно обработанных
+    вариантов, трактуется как ``BrowserType.WPEWEBKIT`` — создаётся
+    соответствующий драйвер.
+    """
     prefs: Final = {
         "download.default_directory": downloads,
         "download.prompt_for_download": False,
@@ -130,7 +169,48 @@ def path_chooser(
     db_path: Path | None = None,  # локация для базы данных
     downloads: Path | None = None,  # папка для загрузок
 ) -> tuple[InstructionDatabase, Path]:
+    """
+    Готовит базу данных инструкций и каталог для скачивания файлов.
 
+    При необходимости создаёт каталог для БД и сам файл базы
+    (через :meth:`InstructionDatabase.bootstrap`), а также каталог
+    для загрузок, если он ещё не существует.
+
+    Parameters
+    ----------
+    create_db : bool
+        Если ``True``, база данных создаётся заново (схема + начальные
+        данные). Если ``False``, открывается существующая база;
+        при её отсутствии будет выброшено исключение.
+    db_path : pathlib.Path or None, optional
+        Путь к файлу базы данных или каталогу, в котором он должен
+        находиться. Если ``None``, используется
+        ``<корень проекта>/sql/instr_db.sqlite3``. Если передан каталог
+        или путь без суффикса, к нему добавляется имя
+        ``instr_db.sqlite3``. По умолчанию — ``None``.
+    downloads : pathlib.Path or None, optional
+        Каталог для сохранения скачанных файлов. Если ``None``,
+        используется ``~/Downloads``. Каталог создаётся при отсутствии.
+        По умолчанию — ``None``.
+
+    Returns
+    -------
+    db : InstructionDatabase
+        Экземпляр базы данных, подключённый к выбранному файлу.
+    downloads : pathlib.Path
+        Путь к каталогу загрузок.
+
+    Raises
+    ------
+    ValueError
+        Если ``create_db=False``, а файл базы данных по указанному пути
+        не существует.
+
+    Notes
+    -----
+    Если ``db_path`` или ``downloads`` не заданы, в лог пишется
+    предупреждение с использованным значением по умолчанию.
+    """
     # стандартная локация для датабазы (в папке sql)
     if db_path is None:
         db_path = Path(__file__).parents[1] / "sql" / "instr_db.sqlite3"
@@ -165,6 +245,36 @@ def the_downloader(
     driver: WebDriver,
     chunksz: int = 33554432 # 32 мебибайта
 ) -> None:
+    """
+    Обходит все страницы в базе и обрабатывает их по инструкциям.
+
+    Для каждой страницы из :meth:`InstructionDatabase.get_pages`
+    вызывает :func:`process_page`. По завершении (в том числе при
+    исключении) закрывает веб-драйвер через ``driver.quit()``.
+
+    Parameters
+    ----------
+    db : InstructionDatabase
+        База данных с инструкциями и списком целевых страниц.
+    download_dir : pathlib.Path
+        Каталог, в который сохраняются скачанные файлы и HTML.
+    driver : WebDriver
+        Активный экземпляр веб-драйвера. Будет закрыт по завершении.
+    chunksz : int, optional
+        Размер буфера для чтения файлов по частям, в байтах.
+        По умолчанию — ``33554432`` (32 МиБ).
+
+    Returns
+    -------
+    None
+        Функция ничего не возвращает; результаты — файлы на диске
+        и записи в логе.
+
+    Notes
+    -----
+    Драйвер закрывается в блоке ``finally``, поэтому даже при ошибке
+    на одной из страниц ресурсы будут освобождены.
+    """
     try:
         for page in db.get_pages():
             logger.info(f"Скачивание: {page.link}")
@@ -174,6 +284,29 @@ def the_downloader(
     logger.info(f"Все скаченные файлы находятся в папке {download_dir}.")
 
 def compare_attrs(attrs: InstAttribute, elem: WebElement) -> bool:
+    """
+    Проверяет, что HTML-элемент соответствует заданным атрибутам.
+
+    Атрибут ``class`` сравнивается как подмножество: все классы
+    из ``attrs["class"]`` должны присутствовать у элемента. Остальные
+    атрибуты сравниваются на точное совпадение значения. Атрибут
+    ``tag`` игнорируется (поиск по тегу выполняется отдельно).
+
+    Parameters
+    ----------
+    attrs : InstAttribute
+        Ожидаемые атрибуты элемента. Может содержать ключи ``tag``,
+        ``id``, ``class``, ``text``, ``data-editor``; отсутствующие
+        ключи не проверяются.
+    elem : selenium.webdriver.remote.webelement.WebElement
+        HTML-элемент, полученный от веб-драйвера.
+
+    Returns
+    -------
+    bool
+        ``True``, если элемент удовлетворяет всем заданным атрибутам,
+        иначе ``False``.
+    """
     return all(
         attrs["class"] <= frozenset((elem.get_attribute(name) or "").split())
         if name == "class"
@@ -189,6 +322,53 @@ def process_page(
     download_dir: Path,
     chunksz: int
 ) -> None:
+    """
+    Выполняет инструкции по скрапингу для одной страницы.
+
+    Поддерживаемые действия:
+
+    - ``Mnemonic.DOWNLOAD_TARGET`` — находит элементы по тегу и атрибутам,
+      скачивает связанные файлы в ``download_dir`` (имя берётся из URL,
+      при пустом имени формируется ``document_<idx>_<i>.pdf``);
+    - ``Mnemonic.EXTRACT_SUBTREE`` — находит подходящие HTML-элементы
+      (с повторной попыткой при ``StaleElementReferenceException``)
+      и сохраняет их ``outerHTML`` в файл
+      ``page_<idx> <последний_сегмент_URL>.html``.
+
+    Если для страницы нет инструкций, пишется предупреждение в лог
+    и страница фактически пропускается.
+
+    Parameters
+    ----------
+    driver : WebDriver
+        Активный веб-драйвер, уже нацеленный на нужный браузер.
+    db : InstructionDatabase
+        База данных, из которой берутся шаги инструкции.
+    page : TargetPage
+        Описание обрабатываемой страницы (``idx``, ``link``, ``kind``,
+        ``topic``).
+    download_dir : pathlib.Path
+        Каталог для сохранения файлов и HTML.
+    chunksz : int
+        Размер буфера чтения файла при скачивании, в байтах.
+
+    Returns
+    -------
+    None
+        Функция ничего не возвращает; результат — файлы на диске
+        и записи в логе.
+
+    Notes
+    -----
+    Скачивание файлов выполняется потоково через ``urlopen`` с
+    ``memoryview``-буфером, чтобы не держать в памяти весь файл.
+    Таймаут сетевого запроса — 30 секунд, SSL-контекст использует
+    сертификаты из ``certifi``.
+
+    При отсутствии подходящих элементов для ``DOWNLOAD_TARGET`` или
+    ``EXTRACT_SUBTREE`` в лог пишется сообщение об ошибке; выполнение
+    продолжается со следующего шага.
+    """
     # инструкции для сайтов
     instructions: Final = db.get_doc_instrs(page.idx)
     ctx: Final = ssl.create_default_context(cafile=certifi.where())

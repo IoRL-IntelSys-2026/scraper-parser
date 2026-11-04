@@ -23,6 +23,39 @@ from database.instr_db import *
 
 
 def test_instrdb_methods() -> None:
+    """
+    Проверяет корректность работы методов :class:`InstructionDatabase`.
+
+    Создаёт временную базу данных через :meth:`InstructionDatabase.bootstrap`,
+    после чего проверяет:
+
+    - :meth:`InstructionDatabase.get_pages` — первая страница в списке
+      совпадает с ожидаемым ``TargetPage`` (``idx=1``, ссылка на раздел
+      приёмной кампании, формат PDF, тема ``ADMISSIONS``);
+    - :meth:`InstructionDatabase.get_doc_instrs` для документа ``4`` —
+      инструкция состоит из одного шага ``DOWNLOAD_TARGET`` с атрибутами
+      ``tag="a"`` и ``data-editor="pdf.link"``;
+    - :meth:`InstructionDatabase.get_doc_instrs` для документа ``14`` —
+      инструкция состоит из двух шагов ``EXTRACT_SUBTREE`` с тегами
+      ``section`` и CSS-классами ``page-subtitle-help`` и ``main``
+      соответственно.
+
+    Returns
+    -------
+    None
+        Функция ничего не возвращает; результат проверяется через
+        ``assert``.
+
+    Notes
+    -----
+    Временный файл создаётся с ``delete=False``, поэтому после завершения
+    теста он не удаляется автоматически. Соединение с БД закрывается
+    при уничтожении объекта ``InstructionDatabase``.
+
+    Examples
+    --------
+    >>> test_instrdb_methods()  # проходит без исключений при корректной БД
+    """
     with tempfile.NamedTemporaryFile(delete=False) as tmp:
         idb: Final = InstructionDatabase.bootstrap(tmp.name)
         pages: Final = idb.get_pages()

@@ -1,4 +1,4 @@
-"""This is a module for interacting with the databases used by this program."""
+"""Модуль для работы с базами данных, которые использует программа."""
 
 __all__ = ["instr_db"]
 

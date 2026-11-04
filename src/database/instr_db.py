@@ -42,11 +42,22 @@ from typing import (
 
 
 class DocumentKind(enum.Enum):
+    """
+    Тип документа, на который ведёт ссылка.
+
+    Определяет, в каком формате хранится целевой документ (HTML или PDF).
+    """
     HTML = 1
     PDF = 2
 
 
 class Mnemonic(enum.Enum):
+    """
+    Мнемоника шага инструкции для веб-скрапера.
+
+    Каждое значение соответствует атомарному действию, которое
+    скрапер должен выполнить при обработке страницы.
+    """
     CLICK_FIRST = 1
     EXTRACT_SUBTREE = 2
     IF_MATCHES = 3
@@ -54,6 +65,11 @@ class Mnemonic(enum.Enum):
 
 
 class Topic(enum.Enum):
+    """
+    Тематическая категория целевой страницы.
+
+    Используется для группировки документов по разделам сайта.
+    """
     DORMITORY = 1
     CATERING = 2
     ADMISSIONS = 3
@@ -74,7 +90,7 @@ InstAttribute = TypedDict(
 
 
 class Instruction(NamedTuple):
-    """Represents an individual instruction for the web scraper."""
+    """Представляет отдельную инструкцию для веб-скрапера."""
 
     step: int
     inst: Mnemonic
@@ -82,7 +98,7 @@ class Instruction(NamedTuple):
 
 
 class TargetPage(NamedTuple):
-    """Represents a link to a webpage that needs to be parsed."""
+    """Представляет ссылку на веб-страницу, подлежащую парсингу."""
 
     idx: int
     link: str
@@ -94,17 +110,38 @@ logger = logging.getLogger(__name__)
 
 
 class InstructionDatabase:
-    """Abstraction over the web scraper instructions database.
-    Manages the SQLite connection."""
+    """
+    Абстракция над базой данных инструкций веб-скрапера.
+
+    Управляет соединением с SQLite (открывается в режиме «только чтение»)
+    и предоставляет методы для получения страниц и шагов инструкций.
+    """
 
     # Use introspection to get column names without copying code
     ATTR_NAMES: Final = frozenset(get_type_hints(InstAttribute).keys())
 
     @staticmethod
     def _convert_to_path(db_loc: str | None) -> pathlib.Path:
-        """Validates the path provided as the `db_loc` argument
-        or the default path if `db_loc` is empty or `None`, then
-        converts it into a `Path`."""
+        """
+        Проверяет путь к базе данных и приводит его к абсолютному ``Path``.
+
+        Если ``db_loc`` пуст или ``None``, используется текущий каталог
+        (с предупреждением в лог). Если у пути отсутствует имя файла
+        (нет суффикса и это не существующий файл), к нему добавляется
+        имя по умолчанию ``instr_db.sqlite3``.
+
+        Parameters
+        ----------
+        db_loc : str or None
+            Путь к файлу базы данных или каталогу, в котором он должен
+            находиться. Может быть пустой строкой или ``None``.
+
+        Returns
+        -------
+        pathlib.Path
+            Абсолютный путь, гарантированно указывающий на файл
+            (существующий или предполагаемый).
+        """
         if not db_loc:
             logger.warning("No path was provided, using current directory")
             db_loc = "."
@@ -116,6 +153,25 @@ class InstructionDatabase:
         return actual_path
 
     def __init__(self, db_loc: str | pathlib.Path | None) -> None:
+        """
+        Открывает соединение с существующей базой данных инструкций.
+
+        Соединение открывается в режиме «только чтение» через URI
+        (``mode=ro``). Строки результата возвращаются как ``sqlite3.Row``,
+        что позволяет обращаться к колонкам по имени.
+
+        Parameters
+        ----------
+        db_loc : str or pathlib.Path or None
+            Путь к файлу базы данных. Строки и ``None`` проходят через
+            :meth:`_convert_to_path`.
+
+        Raises
+        ------
+        ValueError
+            Если итоговый путь не указывает на существующий файл
+            (база данных не найдена).
+        """
         if isinstance(db_loc, str | None):
             db_loc = self._convert_to_path(db_loc)
 
@@ -131,13 +187,42 @@ class InstructionDatabase:
         self._cur.arraysize = 20
 
     def __del__(self) -> None:
+        """
+        Закрывает соединение с базой данных при уничтожении объекта.
+
+        Безопасно вызывается, даже если ``__init__`` завершился с ошибкой
+        до создания соединения (проверяется наличие атрибута ``_con``).
+        """
         if hasattr(self, "_con"):
             self._con.close()
 
     @classmethod
     def bootstrap(cls, db_loc: str | None) -> Self:
-        """Creates a new database using the SQL scripts from the src/sql
-        directory."""
+        """
+        Создаёт новую базу данных инструкций и заполняет её данными.
+
+        Выполняет SQL-скрипты ``src/sql/instr_schema.sql`` (схема) и
+        ``src/sql/instr_data.sql`` (начальные данные) из каталога проекта,
+        после чего возвращает экземпляр класса, подключённый к созданной БД.
+
+        Parameters
+        ----------
+        db_loc : str or None
+            Путь, по которому должна быть создана база данных.
+            Обрабатывается так же, как в :meth:`_convert_to_path`.
+
+        Returns
+        -------
+        Self
+            Новый экземпляр :class:`InstructionDatabase`, связанный
+            с только что созданной базой.
+
+        Notes
+        -----
+        Если файл по указанному пути уже существует, SQL-скрипты будут
+        выполнены поверх него — существующие объекты схемы могут вызвать
+        ошибку или быть перезаписаны в зависимости от содержимого скриптов.
+        """
         db_path: Final = cls._convert_to_path(db_loc)
         # Should paths to bootstrap files be configurable?
         with sqlite3.connect(db_path) as con:
@@ -155,7 +240,24 @@ class InstructionDatabase:
         return cls(db_path)
 
     def get_pages(self) -> list[TargetPage]:
-        """Fetch all pages available for scraping."""
+        """
+        Возвращает все страницы, доступные для скрапинга.
+
+        Выполняет соединение таблиц ``document`` и ``doc_link`` и
+        сортирует результат по идентификатору документа.
+
+        Returns
+        -------
+        list of TargetPage
+            Список целевых страниц, упорядоченный по возрастанию ``idx``.
+            Пустой список, если в базе нет документов.
+
+        Notes
+        -----
+        Типобезопасность результата не гарантируется статически: структура
+        таблиц известна только во время выполнения, поэтому значения
+        приводятся к перечислениям явно.
+        """
         # MyPy cannot know what the database looks like,
         # so there's no way to guarantee type safety here.
         self._cur.execute(
@@ -174,7 +276,30 @@ class InstructionDatabase:
         ]
 
     def get_doc_instrs(self, idx: int) -> list[Instruction]:
-        """Fetch instructions for a document with this identifier."""
+        """
+        Возвращает последовательность шагов инструкции для документа.
+
+        Читает строки из соединения ``doc_inst`` и ``inst_attr``, группируя
+        атрибуты по номеру шага. Атрибут ``class`` разбирается из строки,
+        разделённой пробелами, в ``frozenset``. Неизвестные имена атрибутов
+        пропускаются с предупреждением в лог.
+
+        Parameters
+        ----------
+        idx : int
+           Идентификатор документа (значение ``TargetPage.idx``).
+
+        Returns
+        -------
+        list of Instruction
+            Шаги инструкции, упорядоченные по возрастанию ``step``.
+            Пустой список, если для документа нет ни одного шага.
+
+        Notes
+        -----
+        Для каждого шага в результирующий ``InstAttribute`` попадают только
+        те ключи, которые присутствуют в БД и входят в :attr:`ATTR_NAMES`.
+        """
         res: Final[list[Instruction]] = []
         attrs: Final[dict[str, str]] = {}
         self._cur.execute(

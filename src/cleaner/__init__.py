@@ -1,5 +1,6 @@
-"""Module for creating copies of HTML files with
-unnecessary elements removed."""
+"""Создание копий HTML-файлов с удалёнными лишними элементами.
+Очищенные страницы подготавливаются для дальнейшей векторизации.
+"""
 
 __all__ = ["parser"]
 from cleaner import parser
