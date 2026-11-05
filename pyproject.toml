@@ -36,7 +36,7 @@ classifiers = [
 
 dependencies = [
     "beautifulsoup4==4.15.0",
-    "selenium==4.51.0",
+    "selenium==4.52.0",
 ]
 
 [project.urls]
