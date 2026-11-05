@@ -22,40 +22,7 @@ from typing import Final
 from database.instr_db import *
 
 
-def test_instrdb_methods() -> None:
-    """
-    Проверяет корректность работы методов :class:`InstructionDatabase`.
-
-    Создаёт временную базу данных через :meth:`InstructionDatabase.bootstrap`,
-    после чего проверяет:
-
-    - :meth:`InstructionDatabase.get_pages` — первая страница в списке
-      совпадает с ожидаемым ``TargetPage`` (``idx=1``, ссылка на раздел
-      приёмной кампании, формат PDF, тема ``ADMISSIONS``);
-    - :meth:`InstructionDatabase.get_doc_instrs` для документа ``4`` —
-      инструкция состоит из одного шага ``DOWNLOAD_TARGET`` с атрибутами
-      ``tag="a"`` и ``data-editor="pdf.link"``;
-    - :meth:`InstructionDatabase.get_doc_instrs` для документа ``14`` —
-      инструкция состоит из двух шагов ``EXTRACT_SUBTREE`` с тегами
-      ``section`` и CSS-классами ``page-subtitle-help`` и ``main``
-      соответственно.
-
-    Returns
-    -------
-    None
-        Функция ничего не возвращает; результат проверяется через
-        ``assert``.
-
-    Notes
-    -----
-    Временный файл создаётся с ``delete=False``, поэтому после завершения
-    теста он не удаляется автоматически. Соединение с БД закрывается
-    при уничтожении объекта ``InstructionDatabase``.
-
-    Examples
-    --------
-    >>> test_instrdb_methods()  # проходит без исключений при корректной БД
-    """
+def test_get_pages() -> None:
     with tempfile.NamedTemporaryFile(delete=False) as tmp:
         idb: Final = InstructionDatabase.bootstrap(tmp.name)
         pages: Final = idb.get_pages()
@@ -65,6 +32,12 @@ def test_instrdb_methods() -> None:
             kind=DocumentKind.PDF,
             topic=Topic.ADMISSIONS,
         )
+        assert pages[0] == page1
+
+
+def test_get_doc_instrs() -> None:
+    with tempfile.NamedTemporaryFile(delete=False) as tmp:
+        idb: Final = InstructionDatabase.bootstrap(tmp.name)
         inst4: Final = [
             Instruction(
                 step=1,
@@ -87,6 +60,5 @@ def test_instrdb_methods() -> None:
                 attrs={"tag": "section", "class": frozenset({"main"})},
             ),
         ]
-        assert pages[0] == page1
         assert idb.get_doc_instrs(4) == inst4
         assert idb.get_doc_instrs(14) == inst14
