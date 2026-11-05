@@ -15,6 +15,7 @@ from scraper.rudn_scraper import (
     the_downloader,
 )
 
+
 def _check_positive(arg: str) -> int:
     """Tests that an argument is a positive integer."""
     try:
