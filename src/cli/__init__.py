@@ -45,7 +45,7 @@ def parse_args(args: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--create-db",
         action=argparse.BooleanOptionalAction,
-        help="Можно ли создать базу данных, если по указанному пути её нет."
+        help="Можно ли создать базу данных, если по указанному пути её нет.",
     )
     parser.add_argument(
         "--downloads",
@@ -62,24 +62,22 @@ def parse_args(args: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--buffer-size",
         type=int,
-        default=33554432, # 32 мебибайта
-        help="Размер буфера для загрузки файлов (в байтах)."
+        default=33554432,  # 32 мебибайта
+        help="Размер буфера для загрузки файлов (в байтах).",
     )
     parser.add_argument(
-        "--browser",
-        type=BrowserType,
-        help="Браузер, которым нужно управлять."
+        "--browser", type=BrowserType, help="Браузер, которым нужно управлять."
     )
     parser.add_argument(
         "--driver-path",
         type=Path,
         nargs="?",
-        help="Путь до драйвера для выбранного браузера."
+        help="Путь до драйвера для выбранного браузера.",
     )
     parser.add_argument(
         "browser-opts",
         nargs="*",
-        help="Аргументы, передаваемые напрямую браузеру."
+        help="Аргументы, передаваемые напрямую браузеру.",
     )
     return parser.parse_args(args)
 
@@ -112,12 +110,9 @@ def main() -> None:
         db,
         downloads,
         create_browser_instance(
-            args.browser,
-            args.browser_opts,
-            args.driver_path,
-            str(downloads)
+            args.browser, args.browser_opts, args.driver_path, str(downloads)
         ),
-        args.buffer_size
+        args.buffer_size,
     )
 
     clean_html_directory(downloads)

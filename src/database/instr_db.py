@@ -47,6 +47,7 @@ class DocumentKind(enum.Enum):
 
     Определяет, в каком формате хранится целевой документ (HTML или PDF).
     """
+
     HTML = 1
     PDF = 2
 
@@ -58,6 +59,7 @@ class Mnemonic(enum.Enum):
     Каждое значение соответствует атомарному действию, которое
     скрапер должен выполнить при обработке страницы.
     """
+
     CLICK_FIRST = 1
     EXTRACT_SUBTREE = 2
     IF_MATCHES = 3
@@ -70,6 +72,7 @@ class Topic(enum.Enum):
 
     Используется для группировки документов по разделам сайта.
     """
+
     DORMITORY = 1
     CATERING = 2
     ADMISSIONS = 3
@@ -148,7 +151,9 @@ class InstructionDatabase:
         actual_path = pathlib.Path(db_loc).resolve()
         # Make sure that the path ends in a filename.
         if not (actual_path.is_file() or actual_path.suffix):
-            logger.warning('File name missing, assuming it is "instr_db.sqlite3"')
+            logger.warning(
+                'File name missing, assuming it is "instr_db.sqlite3"'
+            )
             actual_path /= "instr_db.sqlite3"
         return actual_path
 
@@ -180,7 +185,9 @@ class InstructionDatabase:
                 "db_loc must be a path to the location of the instructions database."
             )
 
-        self._con: Final = sqlite3.connect(f"{db_loc.as_uri()}?mode=ro", uri=True)
+        self._con: Final = sqlite3.connect(
+            f"{db_loc.as_uri()}?mode=ro", uri=True
+        )
         self._con.row_factory = sqlite3.Row
         self._cur: Final = self._con.cursor()
         # This might need to be changed later
@@ -355,7 +362,9 @@ class InstructionDatabase:
                 attrs=cast(
                     InstAttribute,
                     {
-                        k: frozenset(attrs[k].split()) if k == "class" else attrs[k]
+                        k: frozenset(attrs[k].split())
+                        if k == "class"
+                        else attrs[k]
                         for k in self.ATTR_NAMES
                         if k in attrs
                     },

@@ -21,7 +21,7 @@ __all__ = [
     "create_browser_instance",
     "path_chooser",
     "process_page",
-    "the_downloader"
+    "the_downloader",
 ]
 
 import enum
@@ -53,12 +53,14 @@ from database.instr_db import (
 
 logger: Final = logging.getLogger(__name__)
 
+
 class BrowserType(enum.StrEnum):
     """
     Поддерживаемые типы браузеров для Selenium WebDriver.
 
     Значения соответствуют именам браузеров в нижнем регистре.
     """
+
     CHROME = "chrome"
     EDGE = "edge"
     FIREFOX = "firefox"
@@ -67,11 +69,12 @@ class BrowserType(enum.StrEnum):
     WEBKITGTK = "webkitgtk"
     WPEWEBKIT = "wpewebkit"
 
+
 def create_browser_instance(
-        browser: BrowserType,
-        instance_args: list[str],
-        driver_path: str | None = None,
-        downloads: str = '.'
+    browser: BrowserType,
+    instance_args: list[str],
+    driver_path: str | None = None,
+    downloads: str = ".",
 ) -> WebDriver:
     """
     Создаёт экземпляр веб-драйвера выбранного браузера.
@@ -135,8 +138,7 @@ def create_browser_instance(
             firefox_options.add_argument(arg)
         firefox_service: Final = webdriver.FirefoxService(driver_path)
         return webdriver.Firefox(
-            service=firefox_service,
-            options=firefox_options
+            service=firefox_service, options=firefox_options
         )
     elif browser is BrowserType.IE:
         ie_options: Final = webdriver.IeOptions()
@@ -162,10 +164,10 @@ def create_browser_instance(
             wpe_options.add_argument(arg)
         wpe_service: Final = webdriver.WPEWebKitService(driver_path)
         return webdriver.WPEWebKit(service=wpe_service, options=wpe_options)
-        
+
 
 def path_chooser(
-    create_db: bool, # Создавать ли базу данных
+    create_db: bool,  # Создавать ли базу данных
     db_path: Path | None = None,  # локация для базы данных
     downloads: Path | None = None,  # папка для загрузок
 ) -> tuple[InstructionDatabase, Path]:
@@ -232,7 +234,9 @@ def path_chooser(
     # стандартное место для папки загрузок
     if downloads is None:
         downloads = Path.home() / "Downloads"
-        logger.warning(f"Папка для загрузок не указана, используется {downloads}")
+        logger.warning(
+            f"Папка для загрузок не указана, используется {downloads}"
+        )
 
     downloads.mkdir(exist_ok=True)
 
@@ -243,7 +247,7 @@ def the_downloader(
     db: InstructionDatabase,
     download_dir: Path,
     driver: WebDriver,
-    chunksz: int = 33554432 # 32 мебибайта
+    chunksz: int = 33554432,  # 32 мебибайта
 ) -> None:
     """
     Обходит все страницы в базе и обрабатывает их по инструкциям.
@@ -283,6 +287,7 @@ def the_downloader(
         driver.quit()
     logger.info(f"Все скаченные файлы находятся в папке {download_dir}.")
 
+
 def compare_attrs(attrs: InstAttribute, elem: WebElement) -> bool:
     """
     Проверяет, что HTML-элемент соответствует заданным атрибутам.
@@ -315,12 +320,13 @@ def compare_attrs(attrs: InstAttribute, elem: WebElement) -> bool:
         if name != "tag"
     )
 
+
 def process_page(
     driver: WebDriver,
     db: InstructionDatabase,
     page: TargetPage,
     download_dir: Path,
-    chunksz: int
+    chunksz: int,
 ) -> None:
     """
     Выполняет инструкции по скрапингу для одной страницы.
@@ -376,8 +382,8 @@ def process_page(
     chunk_buffer: Final = bytearray(chunksz)
     # Через `memoryview` можно заполнять буфер без копий
     chunk_view: Final = memoryview(chunk_buffer)
-    elements: Final = [] # В конце записывает все одновременно
-    nbytes = 0 # сколько байтов прочитано
+    elements: Final = []  # В конце записывает все одновременно
+    nbytes = 0  # сколько байтов прочитано
     driver.get(page.link)
 
     if not instructions:
@@ -401,7 +407,7 @@ def process_page(
                 logger.error("Ссылки для скачивания не найдены!")
                 continue
 
-            for (i, target) in enumerate(targets):
+            for i, target in enumerate(targets):
                 # получить ссылку сайта
                 url = urljoin(driver.current_url, target.get_attribute("href"))
 
@@ -414,15 +420,15 @@ def process_page(
 
                 # таймер для ожидания - 30 секунд, но можно изменить
                 with (
-                        urlopen(url, timeout=30, context=ctx) as sock,
-                        filepath.open("wb") as f
+                    urlopen(url, timeout=30, context=ctx) as sock,
+                    filepath.open("wb") as f,
                 ):
                     # Читает и записывает файл кусками размером `chunksz`.
                     # Можно уменьшить кол-во шагов, читая напрямую в `mmap`,
                     # но тогда пользователь должен заранее знать максимальный
                     # размер файла, т.к. расширение проецированного файла -
                     # долгая операция
-                    while (nbytes := sock.readinto(chunk_view)):
+                    while nbytes := sock.readinto(chunk_view):
                         f.write(chunk_view[:nbytes])
                 logger.info(f"Скачано: {filename}")
 
@@ -433,11 +439,13 @@ def process_page(
             for attempt in range(2):
                 try:
                     temp_elem = driver.find_elements(By.TAG_NAME, tag)
-                    elements.extend([
-                        element
-                        for element in temp_elem
-                        if compare_attrs(attrs, element)
-                    ])
+                    elements.extend(
+                        [
+                            element
+                            for element in temp_elem
+                            if compare_attrs(attrs, element)
+                        ]
+                    )
                     break  # все классно и супер
                 except StaleElementReferenceException as e:
                     logger.warning(
@@ -456,10 +464,8 @@ def process_page(
                         elem.get_attribute("outerHTML") or ""
                         for elem in elements
                     ),
-                    encoding="utf-8"
+                    encoding="utf-8",
                 )
                 logger.info(f"HTML скачан: {filename}")
             else:
                 logger.error(f"Не найден подходящий HTML элемент в {page.link}")
-
-
