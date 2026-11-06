@@ -68,7 +68,7 @@ def test_download_one_page() -> None:
     Если переменная окружения ``CHROMEWEBDRIVER`` задана (например,
     в CI на GitHub Actions / Ubuntu), путь к драйверу берётся из неё,
     а к Chrome добавляются headless-опции: ``--headless=new``,
-    ``--disable-gpu``, ``--no-sandbox``, ``--disable-extensions``,
+    ``--disable-gpu``, ``--js-flags="--jitless"``,
     ``--disable-dev-shm-usage``, ``--window-size=1920,1200``.
     В остальных случаях используется драйвер, найденный Selenium
     автоматически, без дополнительных опций.
