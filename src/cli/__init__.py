@@ -18,21 +18,22 @@ from scraper.rudn_scraper import (
 
 def _check_positive(arg: str) -> int:
     """Проверяет, является ли аргумент положительным числом.
-    
+
     Parameters
     ----------
     arg : str
         Аргумент, который нужно проверить.
-    
+
     Raises
     ------
     argparse.ArgumentTypeError
         Если аргумент — не число, или он меньше 1.
-    
+
     Returns
     -------
     int
-        Число, полученное из аргумента."""
+        Число, полученное из аргумента.
+    """
     try:
         res = int(arg)
     except ValueError:
