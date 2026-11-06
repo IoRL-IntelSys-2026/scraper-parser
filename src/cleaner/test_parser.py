@@ -24,11 +24,29 @@ from .parser import clean_html_directory
 
 
 def _normalize_whitespace(text: str) -> str:
+    """Заменяет любые последовательности пробельных символов одним пробелом.
+
+    Parameters
+    ----------
+    text : str
+        Исходный текст.
+
+    Returns
+    -------
+    str
+        Текст с единичными пробелами, без пробелов по краям.
+    """
     return re.sub(r"\s+", " ", text).strip()
 
 
 def test_clean_html() -> None:
-    # 1. Create a dummy uncleaned HTML page inside a temporary testing folder
+    """Проверяет, что `clean_html_directory` очищает HTML-файл.
+
+    Во временном каталоге создаётся страница со скриптами и тремя
+    вложенными `div`. После очистки должен появиться файл
+    `cleaned_example.html` без скриптов и с одним `div` вместо трёх.
+    Содержимое сравнивается без учёта пробельных символов.
+    """
     with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as d:
         tmp_path = Path(d)
         input_file = tmp_path / "example.html"

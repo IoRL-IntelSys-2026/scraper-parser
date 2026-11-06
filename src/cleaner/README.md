@@ -8,4 +8,4 @@ Provides a function for batch-processing HTML files.
 - Unwraps redundant `div` wrappers that contain only a single child `div`.
 - Removes excessive empty-line spacing from the resulting HTML.
 - Saves cleaned copies alongside the original files, prefixing their names with `cleaned_`. Files that already have this prefix are skipped.
-The function uses UTF-8 encoding for reading and writing files and logs its progress through Python's `logging` module.
+

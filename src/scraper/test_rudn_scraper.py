@@ -34,6 +34,48 @@ logger = logging.getLogger(__name__)
 
 
 def test_download_one_page() -> None:
+    """
+    Интеграционный тест: скачивает одну страницу и один HTML-фрагмент.
+
+    Создаёт временную базу данных и каталог загрузок через
+    :func:`path_chooser`, поднимает headless-экземпляр Chrome через
+    :func:`create_browser_instance` и проверяет работу
+    :func:`process_page` на двух страницах из БД:
+
+    - странице с инструкцией ``Mnemonic.DOWNLOAD_TARGET`` (скачивание
+      связанного файла);
+    - странице с инструкцией ``Mnemonic.EXTRACT_SUBTREE`` (извлечение
+      HTML-фрагмента).
+
+    В конце проверяет, что во временном каталоге появился хотя бы один
+    непустой файл.
+
+    Returns
+    -------
+    None
+        Функция ничего не возвращает; результат проверяется через
+        ``assert``.
+
+    Raises
+    ------
+    AssertionError
+        Если в базе не нашлось страниц с нужными инструкциями, если
+        после обработки не появилось ни одного файла или если все
+        скачанные файлы пустые.
+
+    Notes
+    -----
+    Если переменная окружения ``CHROMEWEBDRIVER`` задана (например,
+    в CI на GitHub Actions / Ubuntu), путь к драйверу берётся из неё,
+    а к Chrome добавляются headless-опции: ``--headless=new``,
+    ``--disable-gpu``, ``--js-flags="--jitless"``,
+    ``--disable-dev-shm-usage``, ``--window-size=1920,1200``.
+    В остальных случаях используется драйвер, найденный Selenium
+    автоматически, без дополнительных опций.
+
+    Драйвер закрывается в блоке ``finally``, временный каталог
+    удаляется автоматически по выходе из ``TemporaryDirectory``.
+    """
     options: Final = []
     chromedriver_path = None
     if (chromedriver := os.getenv("CHROMEWEBDRIVER")) is not None:

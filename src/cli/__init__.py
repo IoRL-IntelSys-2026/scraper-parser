@@ -17,7 +17,23 @@ from scraper.rudn_scraper import (
 
 
 def _check_positive(arg: str) -> int:
-    """Tests that an argument is a positive integer."""
+    """Проверяет, является ли аргумент положительным числом.
+
+    Parameters
+    ----------
+    arg : str
+        Аргумент, который нужно проверить.
+
+    Raises
+    ------
+    argparse.ArgumentTypeError
+        Если аргумент — не число, или он меньше 1.
+
+    Returns
+    -------
+    int
+        Число, полученное из аргумента.
+    """
     try:
         res = int(arg)
     except ValueError:
@@ -30,7 +46,21 @@ def _check_positive(arg: str) -> int:
 def parse_args(
     args: list[str] | None, exit_on_error: bool
 ) -> tuple[argparse.Namespace, list[str], argparse.ArgumentParser]:
-    """Разбирает аргументы командной строки."""
+    """Разбирает аргументы командной строки.
+
+    Parameters
+    ----------
+    args : list of str, optional
+        Список аргументов для разбора. Если не указан, используются
+        аргументы, с которыми запущена программа.
+
+    Returns
+    -------
+    argparse.Namespace
+        Объект с разобранными параметрами: путь к базе данных, папка
+        загрузок, уровень журналирования, размер буфера, выбранный
+        браузер, путь к драйверу и аргументы для браузера.
+    """
     parser: Final = argparse.ArgumentParser(
         description=(
             "Загрузка документов и HTML-страниц по инструкциям из базы данных."
@@ -93,7 +123,13 @@ def parse_args(
 
 
 def main() -> None:
-    """Запускает загрузчик с параметрами командной строки."""
+    """Запускает загрузчик с параметрами командной строки.
+
+    Разбирает аргументы, настраивает журналирование, выбирает
+    базу данных и папку загрузок, запускает браузер и скачивает
+    документы по инструкциям из базы. После этого очищает
+    скачанные HTML-файлы с помощью `clean_html_directory`.
+    """
     args, browser_args, _ = parse_args(None, True)
 
     logging.basicConfig(

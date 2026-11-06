@@ -13,3 +13,4 @@ the instructions database.
  - `get_doc_instrs` takes a document identifier and returns
  scraping intructions for it. Returns an empty list if no instructions
  are available.
+

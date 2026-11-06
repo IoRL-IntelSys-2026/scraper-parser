@@ -1,7 +1,9 @@
-"""Alternative entry point. Can be called with
-```python
-python3 -m scraper_parser.cli
-```"""
+"""Альтернативная точка входа в интерфейс командной строки.
+
+Запускается командой::
+
+    python3 -m scraper_parser.cli
+"""
 
 from cli import main
 

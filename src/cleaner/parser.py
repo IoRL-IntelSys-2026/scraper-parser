@@ -30,14 +30,49 @@ logger = logging.getLogger(__name__)
 
 
 def is_pe_subclass(elem: PageElement) -> TypeIs[NavigableString | Tag]:
-    """Checks that `elem` is a strict subclass of `PageElement`."""
+    """Проверяет, что элемент является строгим подклассом `PageElement`.
+
+    Нужна для сужения типа: mypy сам не понимает, что после проверки
+    элемент точно является `NavigableString` или `Tag`.
+
+    Parameters
+    ----------
+    elem : PageElement
+        Элемент HTML-дерева, полученный из BeautifulSoup.
+
+    Returns
+    -------
+    bool
+        True, если `elem` является экземпляром `NavigableString` или
+        `Tag`, и False, если это сам базовый `PageElement`.
+    """
     return isinstance(elem, PageElement) and type(elem) is not PageElement
 
 
 def clean_html_directory(target_dir: str | Path = ".") -> None:
-    """
-    Scans a directory for HTML files, strips out tracking tags/comments,
-    unnests structural wrappers, and saves optimized output copies.
+    """Создаёт очищенные копии всех HTML-файлов из каталога.
+
+    Для каждого файла `*.html` в каталоге (вложенные папки не
+    просматриваются) удаляет комментарии, теги `script`, `style`,
+    `link`, `header` и `footer`, убирает лишнюю вложенность `div`
+    и пустые строки. Результат сохраняется рядом с исходным файлом
+    под именем `cleaned_<имя файла>`. Исходные файлы не меняются,
+    а файлы, имя которых уже начинается с `cleaned_`, пропускаются.
+
+    Parameters
+    ----------
+    target_dir : str or Path, optional
+        Путь к каталогу с HTML-файлами (по умолчанию текущий каталог).
+
+    Raises
+    ------
+    FileNotFoundError
+        Если указанного каталога не существует.
+
+    Returns
+    -------
+    None
+        Функция ничего не возвращает; результат — новые файлы на диске.
     """
     directory: Final = Path(target_dir)
     logger.info(

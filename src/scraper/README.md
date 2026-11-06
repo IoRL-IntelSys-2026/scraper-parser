@@ -15,6 +15,6 @@ from the RUDN website using Selenium and the instructions stored in the database
   based on their tags and attributes. Logs errors when the requested
   elements cannot be found.
 
-When executed through cli.py, the module initializes the database and download
+When executed through `cli.py`, the module initializes the database and download
 directory, configures Chrome for downloading files and starts the
 downloader.
