@@ -1,5 +1,3 @@
-"""Module for interacting with the web scraper."""
-
 """
 Модуль для взаимодействия с веб-скрапером.
 
