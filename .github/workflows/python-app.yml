@@ -54,7 +54,7 @@ jobs:
     - name: Test with pytest
       run: |
         # Enables Development Mode for warnings from Python itself
-        PYTHONTRACEMALLOC=20 python -X dev -m pytest .
+        python -X dev -m pytest .
     - name: Check that the package builds correctly
       run: |
         mkdir dist
