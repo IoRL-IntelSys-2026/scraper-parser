@@ -1,4 +1,4 @@
-"""Module for cleaning HTML pages."""
+"""Модуль для очистки страниц HTML."""
 
 # parser - Functions for removing unneeded elements from HTML
 # Copyright (C) 2026  The scraper-parser contributors
@@ -63,20 +63,11 @@ def clean_html_directory(target_dir: str | Path = ".") -> None:
     ----------
     target_dir : str or Path, optional
         Путь к каталогу с HTML-файлами (по умолчанию текущий каталог).
-
-    Raises
-    ------
-    FileNotFoundError
-        Если указанного каталога не существует.
-
-    Returns
-    -------
-    None
-        Функция ничего не возвращает; результат — новые файлы на диске.
     """
     directory: Final = Path(target_dir)
     logger.info(
-        f"Starting Batch HTML Parser scanning directory: {directory.resolve(True)}"
+        "Starting Batch HTML Parser scanning in directory %s",
+        directory.resolve(True),
     )
 
     # 4. Using pathlib glob to find html targets safely
@@ -84,7 +75,7 @@ def clean_html_directory(target_dir: str | Path = ".") -> None:
         if file_path.name.startswith("cleaned_"):
             continue
 
-        logger.info(f"Processing file: {file_path.name}")
+        logger.info("Processing file %s", file_path.name)
 
         # Read the file text directly using pathlib
         html_content = file_path.read_text(encoding="utf-8")
@@ -125,7 +116,7 @@ def clean_html_directory(target_dir: str | Path = ".") -> None:
         output_file_path.write_text(cleaned_html_string, encoding="utf-8")
 
         # 3. Utilizing logging instead of print calls
-        logger.info(f"Saved clean file as: {output_file_path.name}")
+        logger.info("Saved clean file as %s", output_file_path.name)
 
 
 if __name__ == "__main__":

@@ -1,4 +1,4 @@
-"""Tests for the HTML cleaner."""
+"""Тесты для модуля очистки HTML."""
 
 # test_parser - Tests for the HTML cleaner
 # Copyright (C) 2026  The scraper-parser contributors

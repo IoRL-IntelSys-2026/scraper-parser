@@ -50,19 +50,6 @@ def test_download_one_page() -> None:
     В конце проверяет, что во временном каталоге появился хотя бы один
     непустой файл.
 
-    Returns
-    -------
-    None
-        Функция ничего не возвращает; результат проверяется через
-        ``assert``.
-
-    Raises
-    ------
-    AssertionError
-        Если в базе не нашлось страниц с нужными инструкциями, если
-        после обработки не появилось ни одного файла или если все
-        скачанные файлы пустые.
-
     Notes
     -----
     Если переменная окружения ``CHROMEWEBDRIVER`` задана (например,
@@ -99,7 +86,7 @@ def test_download_one_page() -> None:
             BrowserType.CHROME,
             options,
             str(chromedriver_path) if chromedriver_path is not None else None,
-            str(downloads)
+            str(downloads),
         )
         chunksz: Final = 33554432  # 32 мебибайта
         pages: Final = db.get_pages()
@@ -127,8 +114,11 @@ def test_download_one_page() -> None:
             None,
         )
 
-        assert dl_page is not None and et_page is not None, (
-            "Не найдены страницы с необходимыми инструкциями."
+        assert dl_page is not None, (
+            "Не найдена страница с нитсрукциями для скачивания файла."
+        )
+        assert et_page is not None, (
+            "Не найдена страница с нитсрукциями для скачивания HTML."
         )
 
         try:
