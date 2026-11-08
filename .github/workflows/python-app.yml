@@ -47,6 +47,9 @@ jobs:
     - name: Lint with ruff
       run: |
         ruff check .
+    - name: Find formatting issues
+      run: |
+        ruff format --diff .
     - name: Test with pytest
       run: |
         pytest
