@@ -47,7 +47,7 @@ jobs:
         echo "::remove-matcher owner=mypy::"
     - name: Lint with ruff
       run: |
-        ruff check .
+        ruff check --output-format=github .
     - name: Find formatting issues
       run: |
         ruff format --diff .

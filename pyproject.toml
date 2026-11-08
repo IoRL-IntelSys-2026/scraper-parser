@@ -51,7 +51,6 @@ strict = true
 
 [tool.ruff]
 line-length = 80
-output-format = "github"
 output-prefer-rule-codes = true
 show-fixes = true
 
