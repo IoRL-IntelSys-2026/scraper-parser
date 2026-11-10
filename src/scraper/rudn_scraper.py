@@ -28,7 +28,7 @@ import enum
 import logging
 import ssl
 from pathlib import Path
-from typing import TYPE_CHECKING, Final
+from typing import TYPE_CHECKING, Final, assert_never
 
 # библиотека urllib очень мощная для работы со ссылками
 from urllib.parse import unquote, urljoin, urlparse
@@ -106,12 +106,6 @@ def create_browser_instance(  # ruff: ignore[complex-structure]
     WebDriver
         Настроенный экземпляр веб-драйвера. Конкретный класс зависит
         от значения ``browser``.
-
-    Notes
-    -----
-    Значение ``browser``, не совпадающее ни с одним из явно обработанных
-    вариантов, трактуется как ``BrowserType.WPEWEBKIT`` — создаётся
-    соответствующий драйвер.
     """
     prefs: Final = {
         "download.default_directory": downloads,
@@ -160,12 +154,14 @@ def create_browser_instance(  # ruff: ignore[complex-structure]
             gtk_options.add_argument(arg)
         gtk_service: Final = webdriver.WebKitGTKService(driver_path)
         return webdriver.WebKitGTK(service=gtk_service, options=gtk_options)
-    else:
+    elif browser is BrowserType.WPEWEBKIT:
         wpe_options: Final = webdriver.WPEWebKitOptions()
         for arg in instance_args:
             wpe_options.add_argument(arg)
         wpe_service: Final = webdriver.WPEWebKitService(driver_path)
         return webdriver.WPEWebKit(service=wpe_service, options=wpe_options)
+    else:
+        assert_never(browser)
 
 
 def path_chooser(
