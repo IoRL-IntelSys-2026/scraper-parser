@@ -28,7 +28,7 @@ import enum
 import logging
 import ssl
 from pathlib import Path
-from typing import Final
+from typing import TYPE_CHECKING, Final, assert_never
 
 # библиотека urllib очень мощная для работы со ссылками
 from urllib.parse import unquote, urljoin, urlparse
@@ -40,8 +40,10 @@ import certifi
 from selenium import webdriver
 from selenium.common.exceptions import StaleElementReferenceException
 from selenium.webdriver.common.by import By
-from selenium.webdriver.remote.webdriver import WebDriver
-from selenium.webdriver.remote.webelement import WebElement
+
+if TYPE_CHECKING:
+    from selenium.webdriver.remote.webdriver import WebDriver
+    from selenium.webdriver.remote.webelement import WebElement
 
 # доп проверка для универсальности кода (привет pycharm)
 from database.instr_db import (
@@ -70,7 +72,7 @@ class BrowserType(enum.StrEnum):
     WPEWEBKIT = "wpewebkit"
 
 
-def create_browser_instance(
+def create_browser_instance(  # ruff: ignore[complex-structure]
     browser: BrowserType,
     instance_args: list[str],
     driver_path: str | None = None,
@@ -104,12 +106,6 @@ def create_browser_instance(
     WebDriver
         Настроенный экземпляр веб-драйвера. Конкретный класс зависит
         от значения ``browser``.
-
-    Notes
-    -----
-    Значение ``browser``, не совпадающее ни с одним из явно обработанных
-    вариантов, трактуется как ``BrowserType.WPEWEBKIT`` — создаётся
-    соответствующий драйвер.
     """
     prefs: Final = {
         "download.default_directory": downloads,
@@ -158,12 +154,14 @@ def create_browser_instance(
             gtk_options.add_argument(arg)
         gtk_service: Final = webdriver.WebKitGTKService(driver_path)
         return webdriver.WebKitGTK(service=gtk_service, options=gtk_options)
-    else:
+    elif browser is BrowserType.WPEWEBKIT:
         wpe_options: Final = webdriver.WPEWebKitOptions()
         for arg in instance_args:
             wpe_options.add_argument(arg)
         wpe_service: Final = webdriver.WPEWebKitService(driver_path)
         return webdriver.WPEWebKit(service=wpe_service, options=wpe_options)
+    else:
+        assert_never(browser)
 
 
 def path_chooser(
@@ -202,12 +200,6 @@ def path_chooser(
     downloads : pathlib.Path
         Путь к каталогу загрузок.
 
-    Raises
-    ------
-    ValueError
-        Если ``create_db=False``, а файл базы данных по указанному пути
-        не существует.
-
     Notes
     -----
     Если ``db_path`` или ``downloads`` не заданы, в лог пишется
@@ -216,7 +208,7 @@ def path_chooser(
     # стандартная локация для датабазы (в папке sql)
     if db_path is None:
         db_path = Path(__file__).parents[1] / "sql" / "instr_db.sqlite3"
-        logger.warning(f"Путь до БД не указан, используется {db_path}")
+        logger.warning("Путь до БД не указан, используется %s", db_path)
 
     # дефолтное название для файла
     if db_path.is_dir() or not db_path.suffix:
@@ -235,7 +227,7 @@ def path_chooser(
     if downloads is None:
         downloads = Path.home() / "Downloads"
         logger.warning(
-            f"Папка для загрузок не указана, используется {downloads}"
+            "Папка для загрузок не указана, используется %s", downloads
         )
 
     downloads.mkdir(exist_ok=True)
@@ -268,12 +260,6 @@ def the_downloader(
         Размер буфера для чтения файлов по частям, в байтах.
         По умолчанию — ``33554432`` (32 МиБ).
 
-    Returns
-    -------
-    None
-        Функция ничего не возвращает; результаты — файлы на диске
-        и записи в логе.
-
     Notes
     -----
     Драйвер закрывается в блоке ``finally``, поэтому даже при ошибке
@@ -281,11 +267,11 @@ def the_downloader(
     """
     try:
         for page in db.get_pages():
-            logger.info(f"Скачивание: {page.link}")
+            logger.info("Скачивание: %s", page.link)
             process_page(driver, db, page, download_dir, chunksz)
     finally:
         driver.quit()
-    logger.info(f"Все скаченные файлы находятся в папке {download_dir}.")
+    logger.info("Все скаченные файлы находятся в папке %s.", download_dir)
 
 
 def compare_attrs(attrs: InstAttribute, elem: WebElement) -> bool:
@@ -321,7 +307,7 @@ def compare_attrs(attrs: InstAttribute, elem: WebElement) -> bool:
     )
 
 
-def process_page(
+def process_page(  # ruff: ignore[complex-structure]
     driver: WebDriver,
     db: InstructionDatabase,
     page: TargetPage,
@@ -358,12 +344,6 @@ def process_page(
     chunksz : int
         Размер буфера чтения файла при скачивании, в байтах.
 
-    Returns
-    -------
-    None
-        Функция ничего не возвращает; результат — файлы на диске
-        и записи в логе.
-
     Notes
     -----
     Скачивание файлов выполняется потоково через ``urlopen`` с
@@ -387,7 +367,7 @@ def process_page(
     driver.get(page.link)
 
     if not instructions:
-        logger.warning(f"Нет инструкций - совершён пропуск: {page.link}")
+        logger.warning("Нет инструкций - совершён пропуск: %s", page.link)
 
     for instruction in instructions:
         attrs = instruction.attrs
@@ -419,8 +399,10 @@ def process_page(
                 filepath = download_dir / filename
 
                 # таймер для ожидания - 30 секунд, но можно изменить
+                # правило suspicious-url-open-usage пока что сломано
+                # и игнорирует проверки
                 with (
-                    urlopen(url, timeout=30, context=ctx) as sock,
+                    urlopen(url, timeout=30, context=ctx) as sock,  # ruff: ignore[suspicious-url-open-usage]
                     filepath.open("wb") as f,
                 ):
                     # Читает и записывает файл кусками размером `chunksz`.
@@ -430,7 +412,7 @@ def process_page(
                     # долгая операция
                     while nbytes := sock.readinto(chunk_view):
                         f.write(chunk_view[:nbytes])
-                logger.info(f"Скачано: {filename}")
+                logger.info("Скачано: %s", filename)
 
         # код для HTML
         elif action is Mnemonic.EXTRACT_SUBTREE:
@@ -449,7 +431,7 @@ def process_page(
                     break  # все классно и супер
                 except StaleElementReferenceException as e:
                     logger.warning(
-                        f"Поймано исключение: {e}, попытка #{attempt}"
+                        "Поймано исключение: %s, попытка #%s", e, attempt
                     )
 
             # скачать страницу как файл html
@@ -466,6 +448,8 @@ def process_page(
                     ),
                     encoding="utf-8",
                 )
-                logger.info(f"HTML скачан: {filename}")
+                logger.info("HTML скачан: %s", filename)
             else:
-                logger.error(f"Не найден подходящий HTML элемент в {page.link}")
+                logger.error(
+                    "Не найден подходящий HTML элемент в %s", page.link
+                )

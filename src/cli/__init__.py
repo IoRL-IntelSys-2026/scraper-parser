@@ -24,22 +24,24 @@ def _check_positive(arg: str) -> int:
     arg : str
         Аргумент, который нужно проверить.
 
-    Raises
-    ------
-    argparse.ArgumentTypeError
-        Если аргумент — не число, или он меньше 1.
-
     Returns
     -------
     int
         Число, полученное из аргумента.
+
+    Raises
+    ------
+    argparse.ArgumentTypeError
+        Если аргумент — не число, или он меньше 1.
     """
+    err_not_int: Final = f'"{arg}" is not an integer.'
+    err_negative: Final = f"{arg} is not a positive integer."
     try:
-        res = int(arg)
-    except ValueError:
-        raise argparse.ArgumentTypeError(f'"{arg}" is not an integer.')
+        res: Final = int(arg)
+    except ValueError as e:
+        raise argparse.ArgumentTypeError(err_not_int) from e
     if res < 1:
-        raise argparse.ArgumentTypeError(f"{res} is not a positive integer.")
+        raise argparse.ArgumentTypeError(err_negative)
     return res
 
 
@@ -53,6 +55,10 @@ def parse_args(
     args : list of str, optional
         Список аргументов для разбора. Если не указан, используются
         аргументы, с которыми запущена программа.
+
+    exit_on_error : bool
+        Нужно ли закрывать программу или бросать ошибку при получении
+        неправильного аргумента. Предназначен для тестирования.
 
     Returns
     -------

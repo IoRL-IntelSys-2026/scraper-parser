@@ -43,13 +43,18 @@ jobs:
     - name: Typecheck with mypy
       run: |
         echo "::add-matcher::.github/mypy.json"
-        python3 -m mypy --strict .
+        mypy --strict .
+        echo "::remove-matcher owner=mypy::"
     - name: Lint with ruff
       run: |
-        ruff check .
+        ruff check --output-format=github .
+    - name: Find formatting issues
+      run: |
+        ruff format --diff .
     - name: Test with pytest
       run: |
-        pytest
+        # Enables Development Mode for warnings from Python itself
+        python -X dev -m pytest .
     - name: Check that the package builds correctly
       run: |
         mkdir dist

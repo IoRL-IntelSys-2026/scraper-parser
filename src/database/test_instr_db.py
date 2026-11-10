@@ -1,7 +1,4 @@
-"""
-Tests for the :class:`InstructionDatabase`
-instructions database abstraction.
-"""
+"""Тесты для абстракции для БД :class:`InstructionDatabase`."""
 
 # test_instr_db - tests for the object-oriented interface
 # Copyright (C) 2026  The scraper-parser contributors
@@ -27,24 +24,11 @@ from database.instr_db import *
 
 def test_get_pages() -> None:
     """Тест: получает одну страницу и сравнивает её с эталоном.
-    
+
     Создаёт базу данных во временном файле (проверяя правильность
     SQL и работу метода :meth:`InstructionDatabase.bootstrap`),
     после чего вызывает :meth:`InstructionDatabase.get_pages`
     и проверяет, что первая страница совпадает с примером.
-    
-    Raises
-    ------
-    AssertionError
-        Если полученная из базы данных страница не совпадает
-        с эталоном.
-    
-    Returns
-    -------
-    None
-        Это тест, он не должен выполняться напрямую. Вместо этого
-        ``pytest`` проверяет правильность условия ``assert`` при
-        запуске.
 
     Notes
     -----
@@ -65,26 +49,12 @@ def test_get_pages() -> None:
 
 
 def test_get_doc_instrs() -> None:
-    """
-    Тест: получает инструкции для страниц 4 и 14, выбранных из-за
-    того, что они содержат разные инструкции и атрибуты, и сравнивает
-    их с эталонами.
-    
+    """Тест: сравнивает инструкции для страниц 4 и 14 с эталонами.
+
+    Страницы 4 и 14 выбраны из-за того, что они содержат разные
+    инструкции и атрибуты.
     Как и :func:`test_get_pages`, тестирует на временной базе данных.
     Инструкции получает с помощью :meth:`InstructionDatabase.get_doc_instrs`.
-    
-    Raises
-    ------
-    AssertionError
-        Если полученные из базы данных инструкции не совпадают
-        с эталонами.
-    
-    Returns
-    -------
-    None
-        Это тест, он не должен выполняться напрямую. Вместо этого
-        ``pytest`` проверяет правильность условий ``assert`` при
-        запуске.
 
     Notes
     -----

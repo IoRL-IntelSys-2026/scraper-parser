@@ -177,13 +177,12 @@ class InstructionDatabase:
             Если итоговый путь не указывает на существующий файл
             (база данных не найдена).
         """
+        err: Final = "db_loc must be a path to the location of the instructions database."
         if isinstance(db_loc, str | None):
             db_loc = self._convert_to_path(db_loc)
 
         if not db_loc.is_file():
-            raise ValueError(
-                "db_loc must be a path to the location of the instructions database."
-            )
+            raise ValueError(err)
 
         self._con: Final = sqlite3.connect(
             f"{db_loc.as_uri()}?mode=ro", uri=True
@@ -335,7 +334,7 @@ class InstructionDatabase:
                         step=last_step,
                         inst=last_inst,
                         attrs=cast(
-                            InstAttribute,
+                            "InstAttribute",
                             {
                                 k: frozenset(attrs[k].split())
                                 if k == "class"
@@ -351,7 +350,7 @@ class InstructionDatabase:
             if kind in self.ATTR_NAMES:
                 attrs[kind] = val
             else:
-                logger.warning(f"Unknown attribute {kind}, skipping it.")
+                logger.warning("Unknown attribute %s, skipping it.", kind)
 
             last_step = step
             last_inst = inst
@@ -360,7 +359,7 @@ class InstructionDatabase:
                 step=last_step,
                 inst=last_inst,
                 attrs=cast(
-                    InstAttribute,
+                    "InstAttribute",
                     {
                         k: frozenset(attrs[k].split())
                         if k == "class"

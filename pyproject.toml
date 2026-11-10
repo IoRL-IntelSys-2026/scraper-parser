@@ -51,13 +51,85 @@ strict = true
 
 [tool.ruff]
 line-length = 80
-output-format = "github"
 output-prefer-rule-codes = true
 show-fixes = true
 
 [tool.ruff.format]
 docstring-code-format = true
 line-ending = "lf"
+
+[tool.ruff.lint]
+extend-select = [
+    "A",
+    "ANN",
+    "ASYNC",
+    "B",
+    "C",
+    "D1",
+    "D2",
+    "D3",
+    "D402",
+    "D403",
+    "D405",
+    "D406",
+    "D407",
+    "D408",
+    "D409",
+    "D414",
+    "D415",
+    "D417",
+    "D420",
+    "DOC",
+    "DTZ",
+    "EM",
+    "FIX",
+    "G",
+    "ISC001",
+    "ISC003",
+    "LOG",
+    "PERF",
+    "PIE",
+    "PLC0415",
+    "PLC1802",
+    "PLC1901",
+    "PLC2401",
+    "PLC2403",
+    "PLC2701",
+    "PLC2801",
+    "PT",
+    "PTH",
+    "PYI",
+    "RUF036",
+    "RUF037",
+    "RUF038",
+    "RUF039",
+    "RUF043",
+    "RUF045",
+    "RUF052",
+    "RUF102",
+    "RUF103",
+    "RUF104",
+    "RUF105",
+    "S",
+    "SIM",
+    "SLOT",
+    "TC",
+    "TID",
+    "TRY",
+    "YTT",
+]
+preview = true
+
+exclude = [
+    "D202",
+    "D212",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"**/test*.py" = ["S101"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
 
 [project.optional-dependencies]
 devel = [
